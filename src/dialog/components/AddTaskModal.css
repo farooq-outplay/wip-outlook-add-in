@@ -1,0 +1,181 @@
+.task-modal-root {
+    padding: 20px;
+    background-color: var(--colorNeutralBackground1);
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--fontFamilyBase);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.task-header-title {
+    font-size: var(--fontSizeBase500);
+    font-weight: var(--fontWeightSemibold);
+    color: var(--colorNeutralForeground1);
+}
+
+.icon-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.icon-button {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    transition: all 0.2s;
+}
+
+/* Active State Shadows */
+.icon-button.active {
+    box-shadow: var(--shadow4);
+    color: white;
+}
+
+/* Email Theme */
+.icon-button.theme-email {
+    color: #ff4081;
+}
+
+.icon-button.theme-email.active {
+    background-color: #ff4081;
+    color: white;
+}
+
+/* Call Theme */
+.icon-button.theme-call {
+    color: #28c76f;
+}
+
+.icon-button.theme-call.active {
+    background-color: #28c76f;
+    color: white;
+}
+
+/* LinkedIn Theme */
+.icon-button.theme-linkedin {
+    color: #00cfe8;
+}
+
+.icon-button.theme-linkedin.active {
+    background-color: #00cfe8;
+    color: white;
+}
+
+/* Twitter Theme */
+.icon-button.theme-twitter {
+    color: #1da1f2;
+}
+
+.icon-button.theme-twitter.active {
+    background-color: #1da1f2;
+    color: white;
+}
+
+/* General Theme */
+.icon-button.theme-general {
+    color: #7367f0;
+}
+
+.icon-button.theme-general.active {
+    background-color: #7367f0;
+    color: white;
+}
+
+/* SMS Theme */
+.icon-button.theme-sms {
+    color: #ffc107;
+}
+
+.icon-button.theme-sms.active {
+    background-color: #ffc107;
+    color: white;
+}
+
+/* WhatsApp Theme */
+.icon-button.theme-whatsapp {
+    color: #28c76f;
+}
+
+.icon-button.theme-whatsapp.active {
+    background-color: #28c76f;
+    color: white;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label {
+    font-size: var(--fontSizeBase300);
+    font-weight: var(--fontWeightSemibold);
+    color: var(--colorNeutralForeground1);
+}
+
+.input-control {
+    width: 100%;
+}
+
+.row-2-col {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+}
+
+.col-flex {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.task-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 10px;
+}
+
+.save-button {
+    background-color: #2f54eb;
+    color: white;
+    min-width: 80px;
+}
+
+.save-button:hover {
+    background-color: #1d39c4;
+}
+
+.cancel-button {
+    color: var(--colorNeutralForeground2);
+}
+
+.cancel-button:hover {
+    color: var(--colorNeutralForeground1);
+    background-color: transparent;
+}

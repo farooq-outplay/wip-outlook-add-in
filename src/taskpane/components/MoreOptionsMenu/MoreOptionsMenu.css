@@ -1,0 +1,56 @@
+.more-options-container {
+    position: relative;
+    display: inline-block;
+}
+
+.trigger-button {
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid var(--colorNeutralStroke1);
+    background-color: var(--colorNeutralBackground1);
+}
+
+.trigger-button:hover {
+    background-color: var(--colorNeutralBackground1Hover);
+}
+
+.options-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background-color: var(--colorNeutralBackground1);
+    border-radius: var(--borderRadiusMedium);
+    box-shadow: var(--shadow16);
+    padding: 4px 0;
+    z-index: 1000;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--colorNeutralStroke1);
+}
+
+.menu-item {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: var(--fontSizeBase300);
+    color: var(--colorNeutralForeground1);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.menu-item:hover {
+    background-color: var(--colorNeutralBackground1Hover);
+}
+
+.menu-item:active {
+    background-color: var(--colorNeutralBackground1Pressed);
+}

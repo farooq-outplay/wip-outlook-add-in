@@ -1,0 +1,59 @@
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Build / output
+dist/
+build/
+out/
+lib/
+target/
+coverage/
+.nyc_output/
+tsconfig.tsbuildinfo
+*.map
+
+# Editor / IDE
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Visual Studio / .NET
+bin/
+obj/
+
+# Environment / secrets / certs
+.env
+.env.local
+.env.*.local
+.office-addin-dev.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+secrets.*
+credentials.*
+
+# Temp / cache
+.cache/
+tmp/
+temp/
+test-results/
+
+# Misc
+.history/
+.vagrant/

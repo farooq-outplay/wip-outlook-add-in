@@ -1,0 +1,19 @@
+.text-insertion-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.text-area-field {
+    margin-left: 20px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    max-width: 50%;
+}
+
+.insertion-instructions {
+    font-weight: var(--fontWeightSemibold);
+    margin-top: 20px;
+    margin-bottom: 10px;
+}

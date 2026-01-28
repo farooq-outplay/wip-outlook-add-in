@@ -1,0 +1,14 @@
+.welcome-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 30px;
+    padding-top: 100px;
+    background-color: var(--colorNeutralBackground3);
+}
+
+.welcome-message {
+    font-size: var(--fontSizeHero900);
+    font-weight: var(--fontWeightRegular);
+    color: var(--colorNeutralBackgroundStatic);
+}
