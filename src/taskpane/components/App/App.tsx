@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import OnboardingPage from "../OnboardingPage/OnboardingPage";
-import SsoPage from "../SsoPage/SsoPage";
 import ProspectSection from "../ProspectSection/ProspectSection";
-import { Mode } from "../../../utility/common.enum";
+import { Mode } from "../../../utility/enums/common.enum";
 
 export interface AppProps {
   title?: string;
@@ -10,13 +8,29 @@ export interface AppProps {
 }
 
 import "./App.css";
+import { getToken } from "../../../utility/authStorage";
+import Login from "../Login/Login";
 
 const App: React.FC<AppProps> = ({ mode }) => {
   const [prospect, setProspect] = useState({
     email: "",
   });
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const checkToken = async () => {
+    try {
+      const token = await getToken();
+      setAccessToken(token);
+    } catch (e) {
+      console.error("Token read failed", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
+    checkToken();
     if (mode !== Mode.ReadMode) return;
 
     const mailbox = Office?.context?.mailbox;
@@ -34,14 +48,15 @@ const App: React.FC<AppProps> = ({ mode }) => {
 
   return (
     <div className="app-container">
-      {/* 1️⃣ Onboarding UI */}
-      <OnboardingPage onContinue={() => { }} />
-
-      {/* 2️⃣ SSO UI */}
-      <SsoPage />
-
-      {/* 3️⃣ Prospect Section UI */}
-      <ProspectSection email={prospect.email} onClose={() => { }} />
+      {accessToken ? (
+        mode === Mode.ReadMode ? (
+          <ProspectSection accessToken={accessToken} email={prospect.email} onClose={() => {}} />
+        ) : (
+          <div>Coming Soon...</div>
+        )
+      ) : (
+        <Login onLoginSuccess={setAccessToken} />
+      )}
     </div>
   );
 };

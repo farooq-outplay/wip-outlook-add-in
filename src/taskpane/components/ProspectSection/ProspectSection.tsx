@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PROSPECT_INFO } from "../../prospectInfoHardcoded";
-import {
-  Button,
-  Text,
-  Avatar,
-  Link,
-  Divider,
-  Input,
-} from "@fluentui/react-components";
+import { Button, Text, Avatar, Link, Divider, Input } from "@fluentui/react-components";
 import Tooltip from "../Tooltip/Tooltip";
 import {
   ArrowTrendingLines20Regular,
@@ -35,6 +28,7 @@ import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 
 interface ProspectSectionProps {
+  accessToken?: string;
   firstName?: string;
   lastName?: string;
   email: string;
@@ -88,11 +82,13 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
 };
 
 const ProspectSection: React.FC<ProspectSectionProps> = ({
+  accessToken,
   firstName,
   lastName,
   email,
   onClose,
 }) => {
+  const [prospect, setProspect] = useState<any>(null);
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientDomain, setRecipientDomain] = useState<string>("");
   const [recipientInitials, setRecipientInitials] = useState<string>("");
@@ -165,7 +161,25 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         (firstName?.[0] || "") + (lastName?.[0] || (!firstName && email ? email[0] : ""));
       setRecipientInitials(fallbackInitials.toUpperCase());
     }
+
+    console.log("email ::", email);
+
+    getProspectInfoByEmail(email);
   }, [firstName, lastName, email]);
+
+  const getProspectInfoByEmail = (email: string) => {
+    fetch(`http://localhost:5029/api/v1/cextprospect/getprospectdetails?id=${email}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-OP-Account": "0c98d1af6c1bc391291c4f5415fe6a6b",
+        "X-OP-ClientId": "D4735D99-EFB0-4E55-8B70-100C70703DB",
+      },
+    })
+      .then((res) => res.json())
+      .then(setProspect)
+      .catch(console.error);
+  };
 
   // Use state values for rendering
   const fullName = recipientName;
@@ -195,6 +209,26 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     );
   };
 
+  if (!prospect) return <div className="card">Loading Prospect...</div>;
+
+  return (
+    <div className="card">
+      <h3>Prospect Details</h3>
+
+      <div className="prospect-row">
+        <b>Name:</b> {prospect.firstname} {prospect.lastname}
+      </div>
+
+      <div className="prospect-row">
+        <b>Email:</b> {prospect.emailid}
+      </div>
+
+      <div className="prospect-row">
+        <b>Status:</b> {prospect.prospectstatus}
+      </div>
+    </div>
+  );
+
   return (
     <section className="prospect-section" aria-labelledby="prospect-section-title">
       {/* Header bar */}
@@ -213,7 +247,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Avatar + name/email/domain */}
       <div className="header-content">
-        <Avatar name={fullName} initials={initials.toUpperCase()} size={48} shape="square" color="colorful" />
+        <Avatar
+          name={fullName}
+          initials={initials.toUpperCase()}
+          size={48}
+          shape="square"
+          color="colorful"
+        />
         <div className="name-block">
           <Text className="name-text">{fullName}</Text>
           <Text className="handle-text">@{domain}</Text>
@@ -253,7 +293,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
             className="action-button"
-            onClick={() => { }}
+            onClick={() => {}}
           />
         </Tooltip>
         <Tooltip content="Add Task">
@@ -275,10 +315,10 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Status pills */}
       <div className="status-row">
-        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
+        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
           Bounced
         </Button>
-        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
+        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
           No Stage
         </Button>
       </div>
@@ -290,7 +330,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             <Button
               appearance="subtle"
               className="social-button"
-              onClick={() => { }}
+              onClick={() => {}}
               aria-label="Facebook"
             >
               <span className="social-text social-text-bold">f</span>
@@ -301,7 +341,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               appearance="subtle"
               icon={<Share20Regular />}
               className="social-button"
-              onClick={() => { }}
+              onClick={() => {}}
               aria-label="Share"
             />
           </Tooltip>
@@ -309,7 +349,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             <Button
               appearance="subtle"
               className="social-button"
-              onClick={() => { }}
+              onClick={() => {}}
               aria-label="Twitter"
             >
               <span className="social-text">𝕏</span>
@@ -321,7 +361,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<Search20Regular />}
             className="search-button"
-            onClick={() => { }}
+            onClick={() => {}}
             aria-label="Search"
           />
         </Tooltip>
@@ -335,7 +375,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         <Tooltip content="Info">
           <Button
             appearance="subtle"
-            icon={<FontAwesomeIcon icon={faCircleInfo} size="lg" className={`tab-icon tab-icon-info ${activeTab === "info" ? "" : ""}`} />}
+            icon={
+              <FontAwesomeIcon
+                icon={faCircleInfo}
+                size="lg"
+                className={`tab-icon tab-icon-info ${activeTab === "info" ? "" : ""}`}
+              />
+            }
             className={`utility-button ${activeTab === "info" ? "active-tab-button" : ""}`}
             onClick={() => setActiveTab("info")}
             aria-label="Info"
@@ -344,13 +390,17 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         <Tooltip content="Activity">
           <Button
             appearance="subtle"
-            icon={<Pulse20Regular className={`tab-icon tab-icon-activity ${activeTab === "activity" ? "" : ""}`} />}
+            icon={
+              <Pulse20Regular
+                className={`tab-icon tab-icon-activity ${activeTab === "activity" ? "" : ""}`}
+              />
+            }
             className={`utility-button ${activeTab === "activity" ? "active-tab-button" : ""}`}
             onClick={() => setActiveTab("activity")}
             aria-label="Activity"
           />
         </Tooltip>
-        <Tooltip content="Note">
+        {/* <Tooltip content="Note">
           <Button
             appearance="subtle"
             icon={<TaskListSquareLtr20Regular className={`tab-icon tab-icon-note ${activeTab === "note" ? "" : ""}`} />}
@@ -358,14 +408,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             onClick={() => setActiveTab("note")}
             aria-label="Note"
           />
-        </Tooltip>
+        </Tooltip> */}
       </div>
 
       {/* Tab Content */}
       <div className="scrollable-content">
         {activeTab === "info" && (
           <div className="info-container">
-
             {/* LinkedIn */}
             <InlineEditField
               label="LinkedIn"
@@ -433,8 +482,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                       {mobileCountry === "UK" && "🇬🇧"}
                       {mobileCountry === "IN" && "🇮🇳"}
                       {mobileCountry === "CA" && "🇨🇦"}
-                      {mobileCountry === "AU" && "🇦🇺"}{" "}
-                      {mobileNumber} {mobileExt ? `ext ${mobileExt}` : ""}
+                      {mobileCountry === "AU" && "🇦🇺"} {mobileNumber}{" "}
+                      {mobileExt ? `ext ${mobileExt}` : ""}
                     </span>
                   ) : (
                     "No Phone"
@@ -512,7 +561,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 }
               />
             ))}
-
           </div>
         )}
         {activeTab === "activity" && (
@@ -531,7 +579,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         isOpen={isAddToSequenceModalOpen}
         onClose={() => setIsAddToSequenceModalOpen(false)}
       />
-    </section >
+    </section>
   );
 };
 

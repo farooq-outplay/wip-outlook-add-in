@@ -7,54 +7,70 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://www.contoso.com/";
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
-  return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
+  return {
+    ca: httpsOptions.ca,
+    key: httpsOptions.key,
+    cert: httpsOptions.cert,
+  };
 }
 
 module.exports = async (env, options) => {
   const dev = options.mode === "development";
-  const config = {
-    devtool: "source-map",
+
+  return {
+    mode: dev ? "development" : "production",
+
+    // Best source maps for Outlook + React debugging
+    devtool: dev ? "eval-source-map" : "source-map", //  "eval-source-map"
+
     entry: {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
       react: ["react", "react-dom"],
-      // taskpane entry already used in your project
+
       taskpane: {
-        import: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
+        import: "./src/taskpane/index.tsx",
         dependOn: "react",
       },
-      // new dialog entry (add your dialog.ts / dialog.html under src/dialog)
+
       dialog: {
-        import: ["./src/dialog/dialog.tsx", "./src/dialog/dialog.html"],
+        import: "./src/dialog/dialog.tsx",
         dependOn: "react",
       },
+
       commands: "./src/commands/commands.ts",
     },
+
     output: {
       clean: true,
       filename: "[name].bundle.js",
       path: path.resolve(__dirname, "dist"),
-      publicPath: "/", // ensures correct resolution when serving
+      publicPath: dev ? urlDev : urlProd,
     },
+
     resolve: {
       extensions: [".ts", ".tsx", ".html", ".js"],
     },
+
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.css$/i,
+          use: ["style-loader", "css-loader"],
+        },
+        {
+          test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
           use: {
             loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-env", "@babel/preset-react", "@babel/preset-typescript"],
+              sourceMaps: true,
+            },
           },
-        },
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: ["ts-loader"],
         },
         {
           test: /\.html$/,
@@ -65,55 +81,52 @@ module.exports = async (env, options) => {
           test: /\.(png|jpg|jpeg|ttf|woff|woff2|gif|ico)$/,
           type: "asset/resource",
           generator: {
-            filename: "assets/[name][ext][query]",
+            filename: "assets/[name][ext]",
           },
-        },
-        {
-          test: /\.css$/,
-          use: ["style-loader", "css-loader"],
         },
       ],
     },
+
     plugins: [
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
-        chunks: ["polyfill", "taskpane", "react"],
+        chunks: ["polyfill", "react", "taskpane"],
       }),
-      // dialog HTML generation (new)
+
       new HtmlWebpackPlugin({
         filename: "dialog.html",
         template: "./src/dialog/dialog.html",
         chunks: ["polyfill", "dialog", "react"],
       }),
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: "assets/*",
-            to: "assets/[name][ext][query]",
-          },
-          {
-            from: "manifest*.xml",
-            to: "[name]" + "[ext]",
-            transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
-              }
-            },
-          },
-        ],
-      }),
+
       new HtmlWebpackPlugin({
         filename: "commands.html",
         template: "./src/commands/commands.html",
         chunks: ["polyfill", "commands"],
       }),
+
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: "assets/*",
+            to: "assets/[name][ext]",
+          },
+          {
+            from: "manifest*.xml",
+            to: "[name][ext]",
+            transform(content) {
+              return dev ? content : content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+            },
+          },
+        ],
+      }),
+
       new webpack.ProvidePlugin({
         Promise: ["es6-promise", "Promise"],
       }),
     ],
+
     devServer: {
       hot: true,
       headers: {
@@ -126,12 +139,10 @@ module.exports = async (env, options) => {
             ? options.https
             : await getHttpsOptions(),
       },
-      port: process.env.npm_package_config_dev_server_port || 3000,
+      port: 3000,
       static: {
         directory: path.resolve(__dirname, "dist"),
       },
     },
   };
-
-  return config;
 };

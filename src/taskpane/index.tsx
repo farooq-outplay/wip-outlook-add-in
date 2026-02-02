@@ -2,7 +2,7 @@ import * as React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App/App";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
-import { Mode } from "../utility/common.enum";
+import { Mode } from "../utility/enums/common.enum";
 
 /* global document, Office, module, require, HTMLElement */
 
