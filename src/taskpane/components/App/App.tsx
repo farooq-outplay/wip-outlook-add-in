@@ -2,21 +2,18 @@ import React, { useEffect, useState } from "react";
 import ProspectSection from "../ProspectSection/ProspectSection";
 import { Mode } from "../../../utility/enums/common.enum";
 
-export interface AppProps {
-  title?: string;
-  mode?: number;
-}
-
 import "./App.css";
 import { getToken } from "../../../utility/authStorage";
 import Login from "../Login/Login";
+import ReadView from "../ReadView/ReadView";
+import { useAppContext } from "../../../utility/store/AppContext";
 
-const App: React.FC<AppProps> = ({ mode }) => {
+const App: React.FC<{}> = () => {
+  const { mode } = useAppContext();
   const [prospect, setProspect] = useState({
     email: "",
   });
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const checkToken = async () => {
     try {
@@ -25,7 +22,6 @@ const App: React.FC<AppProps> = ({ mode }) => {
     } catch (e) {
       console.error("Token read failed", e);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -50,7 +46,8 @@ const App: React.FC<AppProps> = ({ mode }) => {
     <div className="app-container">
       {accessToken ? (
         mode === Mode.ReadMode ? (
-          <ProspectSection accessToken={accessToken} email={prospect.email} onClose={() => {}} />
+          // <ProspectSection accessToken={accessToken} email={prospect.email} onClose={() => {}} />
+          <ReadView />
         ) : (
           <div>Coming Soon...</div>
         )

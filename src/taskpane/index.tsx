@@ -3,6 +3,7 @@ import { createRoot, Root } from "react-dom/client";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import App from "./components/App/App";
 import { Mode } from "../utility/enums/common.enum";
+import { AppProvider } from "../utility/store/AppContext";
 
 /* global document, Office, module, require */
 
@@ -31,7 +32,9 @@ const renderApp = (AppComponent: React.FC<any>) => {
 
   root.render(
     <FluentProvider theme={webLightTheme}>
-      <AppComponent title={TITLE} mode={mode} />
+      <AppProvider value={{ mode }}>
+        <AppComponent />
+      </AppProvider>
     </FluentProvider>
   );
 };

@@ -1,31 +1,29 @@
 {
   "compilerOptions": {
-    "allowUnusedLabels": false,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "ES2017",
+    "lib": ["DOM", "ES2017"],
+
+    "module": "ESNext",
+    "moduleResolution": "Node",
+
     "jsx": "react-jsx",
-    "module": "ES2020",
-    "moduleResolution": "node",
+
+    "strict": true,
+    "skipLibCheck": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
-    "noUnusedParameters": true,
-    "outDir": "dist",
-    "removeComments": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
     "sourceMap": true,
-    "inlineSources": true,
-    "target": "es5",
-    "lib": ["es7", "dom"],
-    "pretty": true,
-    "typeRoots": ["node_modules/@types"]
+    "outDir": "dist",
+
+    "types": ["react", "react-dom", "office-js"]
   },
-  "exclude": ["node_modules"],
-  "compileOnSave": false,
-  "buildOnSave": false,
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    },
-    "files": true
-  }
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -26,7 +26,7 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
-    "@fluentui/react-components": "^9.55.1",
+    "@fluentui/react-components": "^9.72.11",
     "@fluentui/react-icons": "^2.0.264",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
@@ -78,7 +78,6 @@
   },
   "prettier": "office-addin-prettier-config",
   "browserslist": [
-    "last 2 versions",
-    "ie 11"
+    "last 2 versions"
   ]
 }

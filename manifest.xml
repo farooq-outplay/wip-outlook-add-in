@@ -10,8 +10,7 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Outplay Connect"/>
   <Description DefaultValue="Outplay Connect Outlook Add-in"/>
-  <!-- <IconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/> -->
-  <!-- <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-128.png"/> -->
+ 
   <IconUrl DefaultValue="https://us3-app.outplayhq.com/favicon.ico"/>
 <HighResolutionIconUrl DefaultValue="https://us3-app.outplayhq.com/favicon.ico"/>
 

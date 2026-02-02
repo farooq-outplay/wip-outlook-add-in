@@ -27,6 +27,7 @@ import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import { getProspectByEmail } from "../../../utility/api/prospectService";
+import Header from "../Header/Header";
 
 interface ProspectSectionProps {
   accessToken?: string;
@@ -208,21 +209,24 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   if (!prospect) return <div className="card">Loading Prospect...</div>;
 
   return (
-    <div className="card">
-      <h3>Prospect Details</h3>
+    <>
+      <Header />
+      <div className="card">
+        <h3>Prospect Details</h3>
 
-      <div className="prospect-row">
-        <b>Name:</b> {prospect.firstname} {prospect.lastname}
-      </div>
+        <div className="prospect-row">
+          <b>Name:</b> {prospect.firstname} {prospect.lastname}
+        </div>
 
-      <div className="prospect-row">
-        <b>Email:</b> {prospect.emailid}
-      </div>
+        <div className="prospect-row">
+          <b>Email:</b> {prospect.emailid}
+        </div>
 
-      <div className="prospect-row">
-        <b>Status:</b> {prospect.prospectstatus}
+        <div className="prospect-row">
+          <b>Status:</b> {prospect.prospectstatus}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   return (
