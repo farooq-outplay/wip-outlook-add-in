@@ -8,7 +8,7 @@ type ApiOptions = {
   headers?: Record<string, string>;
 };
 
-export const apiClient = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
+export const authApiClient = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
   const token = await getToken();
 
   const res = await fetch(`${HOST_URL}${endpoint}`, {

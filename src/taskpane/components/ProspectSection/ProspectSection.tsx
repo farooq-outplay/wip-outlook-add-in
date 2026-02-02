@@ -26,6 +26,7 @@ import {
 import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
+import { getProspectByEmail } from "../../../utility/api/prospectService";
 
 interface ProspectSectionProps {
   accessToken?: string;
@@ -167,18 +168,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     getProspectInfoByEmail(email);
   }, [firstName, lastName, email]);
 
-  const getProspectInfoByEmail = (email: string) => {
-    fetch(`http://localhost:5029/api/v1/cextprospect/getprospectdetails?id=${email}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-OP-Account": "0c98d1af6c1bc391291c4f5415fe6a6b",
-        "X-OP-ClientId": "D4735D99-EFB0-4E55-8B70-100C70703DB",
-      },
-    })
-      .then((res) => res.json())
-      .then(setProspect)
-      .catch(console.error);
+  const getProspectInfoByEmail = async (email: string) => {
+    try {
+      const data = await getProspectByEmail(email, accessToken);
+      setProspect(data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Use state values for rendering

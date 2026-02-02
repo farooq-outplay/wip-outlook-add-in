@@ -3,6 +3,7 @@ import { saveToken } from "../../../utility/authStorage";
 import { setAuthDialog, clearAuthDialog } from "../../../utility/dialogManager";
 import { exchangeAuthToken } from "../../../utility/api/authService";
 import { getLoginUrl } from "../../../utility/auth.constants";
+import { saveAuthSession } from "../../../utility/authSession";
 
 /* global Office */
 
@@ -34,6 +35,7 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
 
               if (data.type === "AUTH_SUCCESS" && data.token) {
                 const response = await exchangeAuthToken(data.token);
+                saveAuthSession(response);
 
                 await saveToken(response.accessToken);
                 onLoginSuccess(response.accessToken);

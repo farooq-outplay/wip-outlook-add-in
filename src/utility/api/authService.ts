@@ -1,11 +1,8 @@
-import { apiClient } from "./apiClient";
-
-export type TokenResponse = {
-  accessToken: string;
-};
+import { AuthSession } from "../types/auth";
+import { authApiClient } from "./authApiClient";
 
 export const exchangeAuthToken = (tempToken: string) => {
-  return apiClient<TokenResponse>(`/api/jwt/token?token=${tempToken}`, {
+  return authApiClient<AuthSession>(`/api/jwt/token?token=${tempToken}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${tempToken}`,
