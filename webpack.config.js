@@ -109,8 +109,12 @@ module.exports = async (env, options) => {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: "assets/*",
-            to: "assets/[name][ext]",
+            from: "assets",
+            to: "assets",
+          },
+          {
+            from: "auth",
+            to: "auth",
           },
           {
             from: "manifest*.xml",

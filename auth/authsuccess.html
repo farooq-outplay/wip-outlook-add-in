@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Auth Success</title>
+
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+    <script>
+        // 🔴 REQUIRED for Outlook dialogs
+        Office.initialize = function () {
+            console.log("Office.initialize called");
+
+            const token = new URLSearchParams(window.location.search).get("code");
+
+            console.log("Token:", token);
+
+            if (!token) {
+                Office.context.ui.messageParent(
+                    JSON.stringify({ type: "AUTH_ERROR", message: "NO_CODE" })
+                );
+                return;
+            }
+
+            Office.context.ui.messageParent(
+                JSON.stringify({ type: "AUTH_SUCCESS", token })
+            );
+        };
+    </script>
+</head>
+
+<body>
+    <p>Authenticating…</p>
+</body>
+
+</html>
