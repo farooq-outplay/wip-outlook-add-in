@@ -1,61 +1,54 @@
 import * as React from "react";
-import { createRoot } from "react-dom/client";
-import App from "./components/App/App";
+import { createRoot, Root } from "react-dom/client";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import App from "./components/App/App";
 import { Mode } from "../utility/enums/common.enum";
 
-/* global document, Office, module, require, HTMLElement */
+/* global document, Office, module, require */
 
-const title = "Contoso Task Pane Add-in";
+const TITLE = "Outplay";
 
-const rootElement: HTMLElement | null = document.getElementById("container");
-const root = rootElement ? createRoot(rootElement) : undefined;
+const container = document.getElementById("container") as HTMLElement | null;
+const root: Root | null = container ? createRoot(container) : null;
 
-/* Render application after Office initializes */
-Office.onReady(() => {
-  //
+/**
+ * Detect Outlook item mode
+ */
+const getOutlookMode = (): Mode => {
+  const isReadMode = !!Office.context.mailbox.item?.itemId;
+  return isReadMode ? Mode.ReadMode : Mode.ComposeMode;
+};
 
-  const isRead = !!Office.context.mailbox.item.itemId;
+/**
+ * Render React application
+ */
+const renderApp = (AppComponent: React.FC<any>) => {
+  if (!root) return;
 
-  if (isRead) {
-    console.log("READ MODE INITIALIZED");
-  } else {
-    console.log("COMPOSE MODE INITIALIZED");
-  }
+  const mode = getOutlookMode();
 
-  const mode = isRead ? Mode.ReadMode : Mode.ComposeMode;
-  //
+  console.log(mode === Mode.ReadMode ? "READ MODE INITIALIZED" : "COMPOSE MODE INITIALIZED");
 
-  root?.render(
+  root.render(
     <FluentProvider theme={webLightTheme}>
-      <App title={title} mode={mode} />
+      <AppComponent title={TITLE} mode={mode} />
     </FluentProvider>
   );
+};
+
+/**
+ * Office initialization
+ */
+Office.onReady(() => {
+  renderApp(App);
 });
 
+/**
+ * Hot Module Replacement (Development only)
+ */
 if ((module as any).hot) {
   (module as any).hot.accept("./components/App/App", () => {
     const NextApp = require("./components/App/App").default;
-    root?.render(NextApp);
+    renderApp(NextApp);
   });
 }
-
-Office.onReady().then(() => {
-  // In read mode the item has an itemId; in compose it does not
-  const isRead = !!Office.context.mailbox.item.itemId;
-
-  if (isRead) {
-    // READ-MODE: use read APIs (getAsync, display fields, etc.)
-    const subject = Office.context.mailbox.item.subject || "";
-    // example: read-only display
-    // document.getElementById("modeLabel").innerText = "Read mode";
-    // document.getElementById("subject").innerText = subject;
-    console.log("READ MODE INITIALIZED");
-    // ...additional read-only logic...
-  } else {
-    // COMPOSE-MODE: use compose APIs (setAsync allowed)
-    // document.getElementById("modeLabel").innerText = "Compose mode";
-    console.log("COMPOSE MODE INITIALIZED");
-    // ...compose logic...
-  }
-});
