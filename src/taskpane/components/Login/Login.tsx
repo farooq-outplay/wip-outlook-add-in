@@ -8,7 +8,7 @@ import { saveAuthSession } from "../../../utility/authSession";
 /* global Office */
 
 type Props = {
-  onLoginSuccess: (token: string) => void;
+  onLoginSuccess?: (token: string) => void;
 };
 const Login: React.FC<Props> = ({ onLoginSuccess }) => {
   const openLoginDialog = () => {

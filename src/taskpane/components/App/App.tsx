@@ -10,9 +10,9 @@ import { useAppContext } from "../../../utility/store/AppContext";
 
 const App: React.FC<{}> = () => {
   const { mode } = useAppContext();
-  const [prospect, setProspect] = useState({
-    email: "",
-  });
+  // const [prospect, setProspect] = useState({
+  //   email: "",
+  // });
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const checkToken = async () => {
@@ -27,19 +27,6 @@ const App: React.FC<{}> = () => {
 
   useEffect(() => {
     checkToken();
-    if (mode !== Mode.ReadMode) return;
-
-    const mailbox = Office?.context?.mailbox;
-    const toRecipients = mailbox?.item?.to;
-
-    const primaryRecipient =
-      Array.isArray(toRecipients) && toRecipients.length > 0 ? toRecipients[0] : undefined;
-
-    const fallbackFrom = mailbox?.item?.from;
-
-    const emailAddress = primaryRecipient?.emailAddress || fallbackFrom?.emailAddress || "";
-
-    setProspect({ email: emailAddress });
   }, [mode]);
 
   return (

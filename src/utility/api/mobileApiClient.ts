@@ -20,8 +20,8 @@ export const mobileApiClient = async <T>(
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      "X-OP-ClientId": getClientId(),
-      "X-OP-Account": getAccountKey(),
+      "X-OP-ClientId": getClientId() ?? "",
+      "X-OP-Account": getAccountKey() ?? "",
       "X-Client-Platform": "OUTLOOK_ADDIN",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,

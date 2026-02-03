@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../../../utility/store/AppContext";
-import { getProspectByEmail } from "../../../utility/api/prospectService";
+import { getProspectByEmail, saveProspect } from "../../../utility/api/prospectService";
 import { getToken } from "../../../utility/authStorage";
 import { Mode } from "../../../utility/enums/common.enum";
+import { ProspectResponse } from "../../../utility/models/prospect/prospect-response.model";
+import Loader from "../Loader/Loader";
+import "./ProspectDetails.css";
 
 interface Prospect {
   emailid?: string;
@@ -15,8 +18,10 @@ interface Prospect {
 const ProspectDetails: React.FC = () => {
   const { mode } = useAppContext();
   const [accessToken, setAccessToken] = useState<string | null>("");
+  const [email, setEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [prospect, setProspect] = useState<Prospect | null>(null);
+  const [prospect, setProspect] = useState<ProspectResponse | null>(null);
 
   const checkToken = async () => {
     try {
@@ -44,21 +49,59 @@ const ProspectDetails: React.FC = () => {
     const emailAddress = primaryRecipient?.emailAddress || fallbackFrom?.emailAddress || "";
 
     if (emailAddress) {
+      setEmail(emailAddress);
       getProspectInfoByEmail(emailAddress);
     }
   }, []);
 
-  const getProspectInfoByEmail = async (email: string) => {
+  const getProspectInfoByEmail = async (email: string | number) => {
     try {
       const data = await getProspectByEmail(email, accessToken ?? "");
       setProspect(data);
+      setIsLoading(false);
     } catch (error) {
       console.error(error);
     }
   };
 
-  if (!prospect) {
-    return <div>Loading Prospect Details...</div>;
+  const handleAddAsProspect = async () => {
+    setIsLoading(true);
+    const currentEmail = email;
+    try {
+      const payload = {
+        emailid: currentEmail,
+        prospectaccountid: null,
+        firstname: "",
+        lastname: "",
+        designation: "",
+        phone: null,
+        phoneExtension: "",
+        prospectfields: [],
+      };
+      const response = await saveProspect(accessToken ?? "", payload);
+      if (response.prospectid) {
+        getProspectInfoByEmail(response.prospectid);
+      }
+
+      // setIsLoading(false);
+    } catch (error) {
+      console.error("Error saving prospect:", error);
+    }
+  };
+
+  if (isLoading || !prospect) {
+    return <Loader text="Loading prospect details..." />;
+  }
+
+  if (!prospect.prospectid) {
+    return (
+      <div className="add-as-p-container">
+        <span className="add-as-p-text">No prospect found for this email.</span>
+        <button className="add-as-p-button" onClick={handleAddAsProspect}>
+          Add as Prospect
+        </button>
+      </div>
+    );
   }
   return (
     <div className="card">

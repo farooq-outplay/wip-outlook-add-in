@@ -1,6 +1,8 @@
 .app-container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  padding: 0px 5px 0px 5px;
 }

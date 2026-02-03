@@ -1,0 +1,24 @@
+.add-as-p-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+  background-color: #ffffff;
+}
+
+.add-as-p-text {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #323130;
+}
+
+.add-as-p-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #0078d4; /* Fluent UI blue */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
