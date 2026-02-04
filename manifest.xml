@@ -20,6 +20,7 @@
     <AppDomain>https://localhost:3000</AppDomain>
     <AppDomain>https://accounts.outplayhq.com</AppDomain>
     <AppDomain>https://dev-accounts.outplayhq.com</AppDomain>
+    <AppDomain>https://dev-accounts.outplayhq.com/</AppDomain>
     <AppDomain>http://localhost:44380</AppDomain>
     <AppDomain>https://localhost:44380</AppDomain>
     <AppDomain>http://localhost:5029</AppDomain>

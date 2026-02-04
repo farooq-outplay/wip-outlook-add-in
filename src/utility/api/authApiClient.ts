@@ -1,6 +1,6 @@
 import { getToken } from "../authStorage";
 import { getClientId } from "../clientId";
-import { HOST_URL } from "../constants";
+import { DEV_HOST_URl, HOST_URL } from "../constants";
 
 type ApiOptions = {
   method?: "GET" | "POST";

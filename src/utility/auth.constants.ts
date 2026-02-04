@@ -1,4 +1,4 @@
-import { HOST_URL } from "./constants";
+import { DEV_HOST_URl, HOST_URL } from "./constants";
 import { getClientId } from "./clientId";
 
 export const getLoginUrl = (): string => {
