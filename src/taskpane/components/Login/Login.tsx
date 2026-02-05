@@ -4,6 +4,7 @@ import { setAuthDialog, clearAuthDialog } from "../../../utility/dialogManager";
 import { exchangeAuthToken } from "../../../utility/api/authService";
 import { getLoginUrl } from "../../../utility/auth.constants";
 import { saveAuthSession } from "../../../utility/authSession";
+import "./Login.css";
 
 /* global Office */
 
@@ -38,7 +39,7 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
                 saveAuthSession(response);
 
                 await saveToken(response.accessToken);
-                onLoginSuccess(response.accessToken);
+                onLoginSuccess?.(response.accessToken);
 
                 dialog.close();
                 clearAuthDialog();
@@ -64,9 +65,17 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <>
-      <button onClick={openLoginDialog}>Login</button>
-    </>
+    <div className="login-wrapper">
+      <div className="login-card">
+        <div className="login-logo">
+          <img src="/assets/outplay-logo.svg" alt="Outplay" />
+        </div>
+
+        <button className="login-button" onClick={openLoginDialog}>
+          Log In
+        </button>
+      </div>
+    </div>
   );
 };
 
