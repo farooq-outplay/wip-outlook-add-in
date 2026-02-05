@@ -18,20 +18,6 @@
   padding-right: 4px;
 }
 
-.header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.header-title {
-  margin: 0;
-  font-size: var(--fontSizeBase500);
-  font-weight: var(--fontWeightSemibold);
-  color: var(--colorNeutralForeground1);
-}
-
 .close-button {
   min-width: auto;
   padding: 0;
