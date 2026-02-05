@@ -2,9 +2,9 @@ import { getToken } from "../authStorage";
 import { getClientId } from "../clientId";
 import { DEV_HOST_URl, HOST_URL } from "../constants";
 
-type ApiOptions = {
+export type ApiOptions<TBody = unknown> = {
   method?: "GET" | "POST";
-  body?: any;
+  body?: TBody;
   headers?: Record<string, string>;
 };
 
