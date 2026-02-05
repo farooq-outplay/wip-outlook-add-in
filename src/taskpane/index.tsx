@@ -4,6 +4,7 @@ import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import App from "./components/App/App";
 import { Mode } from "../utility/enums/common.enum";
 import { AppProvider } from "../utility/store/AppContext";
+import "./index.css";
 
 /* global document, Office, module, require */
 

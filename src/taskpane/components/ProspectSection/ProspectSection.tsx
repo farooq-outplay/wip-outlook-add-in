@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PROSPECT_INFO } from "../../prospectInfoHardcoded";
-import { Button, Text, Avatar, Link, Divider, Input } from "@fluentui/react-components";
-import Tooltip from "../Tooltip/Tooltip";
+import { Button, Text, Avatar, Link, Divider, Input, Tooltip } from "@fluentui/react-components";
 import {
   ArrowTrendingLines20Regular,
   Mail20Regular,
@@ -241,7 +240,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Action icons row */}
       <div className="actions-row" aria-label="Prospect quick actions">
-        <Tooltip content="Add to Sequence">
+        <Tooltip content="Add to Sequence" relationship="label">
           <span>
             <Button
               appearance="subtle"
@@ -251,7 +250,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             />
           </span>
         </Tooltip>
-        <Tooltip content="Send Email">
+        <Tooltip content="Send Email" relationship="description">
           <Button
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
@@ -259,7 +258,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             onClick={() => {}}
           />
         </Tooltip>
-        <Tooltip content="Add Task">
+        <Tooltip content="Add Task" relationship="label">
           <Button
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faListCheck} size="sm" className="icon-listcheck" />}
@@ -289,7 +288,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       {/* Social media icons row */}
       <div className="social-row">
         <div className="social-icons">
-          <Tooltip content="Facebook">
+          <Tooltip content="Facebook" relationship="label">
             <Button
               appearance="subtle"
               className="social-button"
@@ -299,7 +298,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               <span className="social-text social-text-bold">f</span>
             </Button>
           </Tooltip>
-          <Tooltip content="Share">
+          <Tooltip content="Share" relationship="label">
             <Button
               appearance="subtle"
               icon={<Share20Regular />}
@@ -308,7 +307,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               aria-label="Share"
             />
           </Tooltip>
-          <Tooltip content="Twitter">
+          <Tooltip content="Twitter" relationship="label">
             <Button
               appearance="subtle"
               className="social-button"
@@ -319,7 +318,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             </Button>
           </Tooltip>
         </div>
-        <Tooltip content="Search">
+        <Tooltip content="Search" relationship="label">
           <Button
             appearance="subtle"
             icon={<Search20Regular />}
@@ -335,7 +334,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Bottom utility bar */}
       <div className="utility-bar" aria-label="Utility actions">
-        <Tooltip content="Info">
+        <Tooltip content="Info" relationship="label">
           <Button
             appearance="subtle"
             icon={
@@ -350,7 +349,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             aria-label="Info"
           />
         </Tooltip>
-        <Tooltip content="Activity">
+        <Tooltip content="Activity" relationship="label">
           <Button
             appearance="subtle"
             icon={
