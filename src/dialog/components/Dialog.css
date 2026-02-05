@@ -79,3 +79,94 @@
 .cancel-button {
   color: var(--colorNeutralForeground2);
 }
+
+/* Pause Modal Styles */
+/* Note: The dialog window itself serves as the 'modal container', so we style inside .pause-root */
+
+.pause-root {
+  justify-content: center;
+  /* Center vertically if needed */
+  padding: 24px;
+}
+
+.pause-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pause-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  background-color: #E6F0FF;
+  color: #0F6CBD;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.delete-icon-wrapper {
+  background-color: #FDF3F2 !important;
+  color: #C53030 !important;
+}
+
+.finished-icon-wrapper {
+  background-color: #E6F2EB !important;
+  color: #28C76F !important;
+}
+
+.optout-icon-wrapper {
+  background-color: #FFF4CE !important;
+  color: #8A6D3B !important;
+}
+
+.pause-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #242424;
+  margin: 0;
+}
+
+.pause-modal-body {
+  font-size: 14px;
+  color: #424242;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.pause-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-btn {
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.modal-btn-secondary {
+  background: transparent;
+  color: #616161;
+}
+
+.modal-btn-secondary:hover {
+  background-color: #f0f0f0;
+}
+
+.modal-btn-primary {
+  background-color: #0F6CBD;
+  color: white;
+}
+
+.modal-btn-primary:hover {
+  background-color: #0E5CAB;
+}

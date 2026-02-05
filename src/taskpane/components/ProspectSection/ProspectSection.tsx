@@ -171,7 +171,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
   const getProspectInfoByEmail = async (email: string) => {
     try {
-      const data = await getProspectByEmail(email, accessToken);
+      const data = await getProspectByEmail(email);
       setProspect(data);
     } catch (error) {
       console.error(error);
@@ -206,28 +206,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     );
   };
 
-  if (!prospect) return <div className="card">Loading Prospect...</div>;
 
-  return (
-    <>
-      <Header />
-      <div className="card">
-        <h3>Prospect Details</h3>
-
-        <div className="prospect-row">
-          <b>Name:</b> {prospect.firstname} {prospect.lastname}
-        </div>
-
-        <div className="prospect-row">
-          <b>Email:</b> {prospect.emailid}
-        </div>
-
-        <div className="prospect-row">
-          <b>Status:</b> {prospect.prospectstatus}
-        </div>
-      </div>
-    </>
-  );
 
   return (
     <section className="prospect-section" aria-labelledby="prospect-section-title">
@@ -293,7 +272,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
             className="action-button"
-            onClick={() => {}}
+            onClick={() => { }}
           />
         </Tooltip>
         <Tooltip content="Add Task">
@@ -315,10 +294,10 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Status pills */}
       <div className="status-row">
-        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
+        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           Bounced
         </Button>
-        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
+        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           No Stage
         </Button>
       </div>
@@ -330,7 +309,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             <Button
               appearance="subtle"
               className="social-button"
-              onClick={() => {}}
+              onClick={() => { }}
               aria-label="Facebook"
             >
               <span className="social-text social-text-bold">f</span>
@@ -341,7 +320,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               appearance="subtle"
               icon={<Share20Regular />}
               className="social-button"
-              onClick={() => {}}
+              onClick={() => { }}
               aria-label="Share"
             />
           </Tooltip>
@@ -349,7 +328,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             <Button
               appearance="subtle"
               className="social-button"
-              onClick={() => {}}
+              onClick={() => { }}
               aria-label="Twitter"
             >
               <span className="social-text">𝕏</span>
@@ -361,7 +340,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<Search20Regular />}
             className="search-button"
-            onClick={() => {}}
+            onClick={() => { }}
             aria-label="Search"
           />
         </Tooltip>

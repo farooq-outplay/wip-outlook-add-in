@@ -11,6 +11,7 @@ import Loader from "../Loader/Loader";
 import "./ProspectDetails.css";
 import { ApiStatusCodes } from "../../../utility/types/apiResultTypes";
 import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
+import ProspectSection from "../ProspectSection/ProspectSection";
 
 const ProspectDetails: React.FC = () => {
   const { mode } = useAppContext();
@@ -112,21 +113,12 @@ const ProspectDetails: React.FC = () => {
     );
   }
   return (
-    <div className="card">
-      <h3>Prospect Details</h3>
-
-      <div className="prospect-row">
-        <b>Name:</b> {prospect?.firstname} {prospect?.lastname}
-      </div>
-
-      <div className="prospect-row">
-        <b>Email:</b> {prospect?.emailid}
-      </div>
-
-      <div className="prospect-row">
-        <b>Status:</b> {prospect?.prospectstatus}
-      </div>
-    </div>
+    <ProspectSection
+      accessToken={accessToken || undefined}
+      firstName={prospect?.firstname}
+      lastName={prospect?.lastname}
+      email={prospect?.emailid || ""}
+    />
   );
 };
 

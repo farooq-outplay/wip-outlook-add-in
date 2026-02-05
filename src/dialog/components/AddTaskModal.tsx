@@ -29,9 +29,7 @@ const AddTaskModal: React.FC = () => {
   const [time, setTime] = useState("11:25 AM");
   const [assignTo, setAssignTo] = useState("Outplaytest22");
   const [priority, setPriority] = useState("High");
-  const [taskType, setTaskType] = useState<
-    "email" | "call" | "linkedin" | "twitter" | "general" | "sms" | "whatsapp"
-  >("email");
+  const [taskType, setTaskType] = useState<"email" | "call" | "linkedin" | "twitter" | "general" | "sms" | "whatsapp">("email");
   const [actionParam, setActionParam] = useState("View Profile");
   const [taskName, setTaskName] = useState("");
 
@@ -78,6 +76,7 @@ const AddTaskModal: React.FC = () => {
                         ? "Create a WhatsApp Task"
                         : "Create a General Task"}
           </div>
+
         </div>
 
         {/* Icon Toolbar */}
@@ -200,7 +199,7 @@ const AddTaskModal: React.FC = () => {
           {/* Task Description / Message Body */}
           <div className="field-group">
             <Label className="field-label">
-              {taskType === "sms" || taskType === "whatsapp" ? "Message Body" : "Task Description"}
+              {(taskType === "sms" || taskType === "whatsapp") ? "Message Body" : "Task Description"}
             </Label>
             <Textarea
               className="input-control"
@@ -227,9 +226,7 @@ const AddTaskModal: React.FC = () => {
               <Input
                 type="text" // Using text for verify layout, ideally time picker
                 value={time}
-                contentAfter={
-                  <Clock24Regular style={{ color: "var(--colorNeutralForeground3)" }} />
-                }
+                contentAfter={<Clock24Regular style={{ color: "var(--colorNeutralForeground3)" }} />}
                 className="input-control"
                 onChange={(_e, data) => setTime(data.value)}
               />
