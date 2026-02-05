@@ -1,28 +1,19 @@
 import { ProspectResponse } from "../models/prospect/prospect-response.model";
+import { ApiResult } from "../types/apiResultTypes";
 import { mobileApiClient } from "./mobileApiClient";
 
-export const getProspectByEmail = (
-  email: string | number,
-  accessToken: string
-): Promise<ProspectResponse> => {
+export const getProspectByEmail = (email: string | number): Promise<ProspectResponse> => {
   return mobileApiClient<ProspectResponse>(
-    `/api/v1/cextprospect/getprospectdetails?id=${encodeURIComponent(email.toString())}`,
+    `/api/v1/cextprospect/getprospectdetails?id=${encodeURIComponent(email)}`,
     {
       method: "GET",
-      headers: {
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
     }
   );
 };
 
-export const saveProspect = (accessToken: string, payload: any): Promise<ProspectResponse> => {
-  return mobileApiClient<ProspectResponse>(`/api/v1/cextprospect/saveprospect`, {
+export const saveProspect = (payload: any): Promise<any> => {
+  return mobileApiClient<ApiResult<ProspectResponse>>(`/api/v1/cextprospect/saveprospect`, {
     method: "POST",
-    headers: {
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      "Content-Type": "application/json",
-    },
     body: payload,
   });
 };

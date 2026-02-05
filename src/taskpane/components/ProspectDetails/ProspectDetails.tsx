@@ -3,25 +3,23 @@ import { useAppContext } from "../../../utility/store/AppContext";
 import { getProspectByEmail, saveProspect } from "../../../utility/api/prospectService";
 import { getToken } from "../../../utility/authStorage";
 import { Mode } from "../../../utility/enums/common.enum";
-import { ProspectResponse } from "../../../utility/models/prospect/prospect-response.model";
+import {
+  ProspectData,
+  ProspectResponse,
+} from "../../../utility/models/prospect/prospect-response.model";
 import Loader from "../Loader/Loader";
 import "./ProspectDetails.css";
-
-interface Prospect {
-  emailid?: string;
-  firstname?: string;
-  lastname?: string;
-  status?: string;
-  prospectstatus?: string;
-}
+import { ApiStatusCodes } from "../../../utility/types/apiResultTypes";
+import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 
 const ProspectDetails: React.FC = () => {
   const { mode } = useAppContext();
   const [accessToken, setAccessToken] = useState<string | null>("");
   const [email, setEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showSomethingWentWrong, setShowSomethingWentWrong] = useState<boolean>(false);
 
-  const [prospect, setProspect] = useState<ProspectResponse | null>(null);
+  const [prospect, setProspect] = useState<ProspectData | null>(null);
 
   const checkToken = async () => {
     try {
@@ -56,11 +54,19 @@ const ProspectDetails: React.FC = () => {
 
   const getProspectInfoByEmail = async (email: string | number) => {
     try {
-      const data = await getProspectByEmail(email, accessToken ?? "");
-      setProspect(data);
+      const data: ProspectResponse = await getProspectByEmail(email);
+      console.log("Data ::", data);
+
+      if (data.success) {
+        setShowSomethingWentWrong(false);
+        setProspect(data.data);
+      } else {
+        setShowSomethingWentWrong(true);
+      }
       setIsLoading(false);
     } catch (error) {
-      console.error(error);
+      setShowSomethingWentWrong(true);
+      setIsLoading(false);
     }
   };
 
@@ -78,16 +84,18 @@ const ProspectDetails: React.FC = () => {
         phoneExtension: "",
         prospectfields: [],
       };
-      const response = await saveProspect(accessToken ?? "", payload);
+      const response = await saveProspect(payload);
       if (response.prospectid) {
         getProspectInfoByEmail(response.prospectid);
       }
-
-      // setIsLoading(false);
     } catch (error) {
       console.error("Error saving prospect:", error);
     }
   };
+
+  if (showSomethingWentWrong) {
+    return <SomethingWentWrong />;
+  }
 
   if (isLoading || !prospect) {
     return <Loader text="Loading prospect details..." />;

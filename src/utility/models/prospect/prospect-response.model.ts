@@ -46,7 +46,7 @@ export interface ProspectDetails {
    Root API Response
 ============================ */
 
-export interface ProspectResponse {
+export interface ProspectData {
   domain?: string;
   tags?: string[];
   prospectOportunityIds?: number[];
@@ -85,3 +85,7 @@ export interface ProspectResponse {
   MarkAsMainAttribute?: boolean;
   hotleadstatus?: number;
 }
+
+export type ProspectResponse =
+  | { success: true; data: ProspectData }
+  | { success: false; status: number; error: string };
