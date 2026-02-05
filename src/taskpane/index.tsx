@@ -6,9 +6,7 @@ import { Mode } from "../utility/enums/common.enum";
 import { AppProvider } from "../utility/store/AppContext";
 import "./index.css";
 
-/* global document, Office, module, require */
-
-const TITLE = "Outplay";
+/* global document, Office, module */
 
 const container = document.getElementById("container") as HTMLElement | null;
 const root: Root | null = container ? createRoot(container) : null;
@@ -24,7 +22,7 @@ const getOutlookMode = (): Mode => {
 /**
  * Render React application
  */
-const renderApp = (AppComponent: React.FC<any>) => {
+const renderApp = (AppComponent: React.FC) => {
   if (!root) return;
 
   const mode = getOutlookMode();
@@ -50,9 +48,10 @@ Office.onReady(() => {
 /**
  * Hot Module Replacement (Development only)
  */
-if ((module as any).hot) {
-  (module as any).hot.accept("./components/App/App", () => {
-    const NextApp = require("./components/App/App").default;
-    renderApp(NextApp);
+if (module.hot) {
+  module.hot.accept("./components/App/App", () => {
+    import("./components/App/App").then((mod) => {
+      renderApp(mod.default);
+    });
   });
 }
