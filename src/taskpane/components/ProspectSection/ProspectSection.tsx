@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { PROSPECT_INFO } from "../../prospectInfoHardcoded";
 import { Button, Text, Avatar, Link, Divider, Input, Tooltip } from "@fluentui/react-components";
 import {
-  ArrowTrendingLines20Regular,
-  Mail20Regular,
-  TaskListSquareLtr20Regular,
-  Dismiss20Regular,
   Clock20Regular,
   Search20Regular,
-  Document20Regular,
   Pulse20Regular,
   Share20Regular,
   Building20Regular,
   Checkmark20Regular,
+  Dismiss20Regular,
 } from "@fluentui/react-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,7 +21,6 @@ import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import { getProspectByEmail } from "../../../utility/api/prospectService";
-import Header from "../Header/Header";
 
 interface ProspectSectionProps {
   accessToken?: string;
@@ -35,9 +29,6 @@ interface ProspectSectionProps {
   email: string;
   onClose?: () => void;
 }
-
-// Helper Types
-type FieldType = "text" | "date" | "mobile" | "custom";
 
 interface InlineEditFieldProps {
   label: string;
@@ -82,6 +73,18 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   );
 };
 
+// Realtime prospect field list as single source of truth
+const PROSPECT_FIELDS_CONFIG = [
+  { fieldoriginid: 8, fieldname: "City", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 9, fieldname: "State", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 10, fieldname: "Country", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 11, fieldname: "Facebook", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 14, fieldname: "LinkedIn", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 17, fieldname: "Twitter", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 7, fieldname: "Company", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: 1, iscustomfield: false }
+];
+
 const ProspectSection: React.FC<ProspectSectionProps> = ({
   accessToken,
   firstName,
@@ -93,31 +96,28 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientDomain, setRecipientDomain] = useState<string>("");
   const [recipientInitials, setRecipientInitials] = useState<string>("");
-  // Field States
-  const [linkedIn, setLinkedIn] = useState<string>("");
-  const [mobileCountry, setMobileCountry] = useState<string>("US");
-  const [mobileNumber, setMobileNumber] = useState<string>("");
-  const [mobileExt, setMobileExt] = useState<string>("");
-  const [consentDate, setConsentDate] = useState<string>("");
-  const [consentForCall, setConsentForCall] = useState<string>("");
-  const [account, setAccount] = useState<string>("");
 
-  // Edit Mode States
-  const [editingField, setEditingField] = useState<string | null>(null);
+  // Local state for editing values before saving (can be enhanced to use specific field IDs)
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [editingFieldId, setEditingFieldId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<"info" | "activity" | "note">("info");
 
   // Modal State
   const [isAddToSequenceModalOpen, setIsAddToSequenceModalOpen] = useState(false);
 
-  // Dynamic fields from pseudo-database (indices 5 onwards, as 0-4 are handled manually above)
-  const [extraFields, setExtraFields] = useState(PROSPECT_INFO.slice(5));
+  // Search State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const handleExtraFieldChange = (index: number, newVal: string) => {
-    const updated = [...extraFields];
-    updated[index] = { ...updated[index], value: newVal };
-    setExtraFields(updated);
+  const handleSearchClear = () => {
+    setSearchQuery("");
+    setIsSearchOpen(false);
   };
+
+  const filteredFields = PROSPECT_FIELDS_CONFIG.filter((field) =>
+    field.fieldname.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const item = Office.context.mailbox.item;
@@ -163,7 +163,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       setRecipientInitials(fallbackInitials.toUpperCase());
     }
 
-    console.log("email ::", email);
+    // console.log("email ::", email);
 
     getProspectInfoByEmail(email);
   }, [firstName, lastName, email]);
@@ -175,6 +175,49 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     } catch (error) {
       console.error(error);
     }
+  };
+
+  // Helper to resolve field value from prospect object
+  const getFieldValue = (field: typeof PROSPECT_FIELDS_CONFIG[0]) => {
+    if (!prospect) return "";
+
+    // Check local edit state first if currently editing? 
+    // Ideally we use this for the input value, but standard value comes from prospect
+
+    // Map specific fields if the API property names differ from fieldname
+    // Based on common patterns:
+    const key = field.fieldname.toLowerCase().replace(/\s+/g, ''); // "Prospect Interests" -> "prospectinterests"
+
+    if (key === "company") return prospect.prospectaccount || prospect.company || "";
+    // Check if it exists directly on prospect
+    if (prospect[key]) return prospect[key];
+
+    // Check if it exists with exact casing
+    if (prospect[field.fieldname]) return prospect[field.fieldname];
+
+    // Check lowercase
+    if (prospect[field.fieldname.toLowerCase()]) return prospect[field.fieldname.toLowerCase()];
+
+    // Fallback/Placeholder
+    return "";
+  };
+
+  const handleEditStart = (fieldId: number, currentValue: string) => {
+    setEditingFieldId(fieldId);
+    setEditValues(prev => ({ ...prev, [fieldId]: currentValue }));
+  };
+
+  const handleEditChange = (fieldId: number, newValue: string) => {
+    setEditValues(prev => ({ ...prev, [fieldId]: newValue }));
+  };
+
+  const handleSave = (fieldId: number) => {
+    // Here we would call the API to save the new value
+    // const newValue = editValues[fieldId];
+    // saveProspectField(fieldId, newValue)...
+
+    // For now, just close edit mode as per previous behavior (local state update not fully wired to persist without API)
+    setEditingFieldId(null);
   };
 
   // Use state values for rendering
@@ -255,7 +298,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
             className="action-button"
-            onClick={() => {}}
+            onClick={() => { }}
           />
         </Tooltip>
         <Tooltip content="Add Task" relationship="label">
@@ -277,56 +320,80 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Status pills */}
       <div className="status-row">
-        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
+        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           Bounced
         </Button>
-        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
+        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           No Stage
         </Button>
       </div>
 
       {/* Social media icons row */}
       <div className="social-row">
-        <div className="social-icons">
-          <Tooltip content="Facebook" relationship="label">
-            <Button
-              appearance="subtle"
-              className="social-button"
-              onClick={() => {}}
-              aria-label="Facebook"
-            >
-              <span className="social-text social-text-bold">f</span>
-            </Button>
-          </Tooltip>
-          <Tooltip content="Share" relationship="label">
-            <Button
-              appearance="subtle"
-              icon={<Share20Regular />}
-              className="social-button"
-              onClick={() => {}}
-              aria-label="Share"
+        {isSearchOpen ? (
+          <div className="search-input-container" style={{ marginLeft: 0 }}>
+            <Input
+              autoFocus
+              value={searchQuery}
+              onChange={(_e, data) => setSearchQuery(data.value)}
+              placeholder="Search Prospects Fields"
+              className="prospect-search-input"
+              contentBefore={<Search20Regular className="search-icon" />}
+              contentAfter={
+                <Button
+                  appearance="subtle"
+                  icon={<Dismiss20Regular />}
+                  onClick={handleSearchClear}
+                  className="search-clear-button"
+                  aria-label="Clear search"
+                />
+              }
             />
-          </Tooltip>
-          <Tooltip content="Twitter" relationship="label">
-            <Button
-              appearance="subtle"
-              className="social-button"
-              onClick={() => {}}
-              aria-label="Twitter"
-            >
-              <span className="social-text">𝕏</span>
-            </Button>
-          </Tooltip>
-        </div>
-        <Tooltip content="Search" relationship="label">
-          <Button
-            appearance="subtle"
-            icon={<Search20Regular />}
-            className="search-button"
-            onClick={() => {}}
-            aria-label="Search"
-          />
-        </Tooltip>
+          </div>
+        ) : (
+          <>
+            <div className="social-icons">
+              <Tooltip content="Facebook" relationship="label">
+                <Button
+                  appearance="subtle"
+                  className="social-button"
+                  onClick={() => { }}
+                  aria-label="Facebook"
+                >
+                  <span className="social-text social-text-bold">f</span>
+                </Button>
+              </Tooltip>
+              <Tooltip content="Share" relationship="label">
+                <Button
+                  appearance="subtle"
+                  icon={<Share20Regular />}
+                  className="social-button"
+                  onClick={() => { }}
+                  aria-label="Share"
+                />
+              </Tooltip>
+              <Tooltip content="Twitter" relationship="label">
+                <Button
+                  appearance="subtle"
+                  className="social-button"
+                  onClick={() => { }}
+                  aria-label="Twitter"
+                >
+                  <span className="social-text">𝕏</span>
+                </Button>
+              </Tooltip>
+            </div>
+            <Tooltip content="Search" relationship="label">
+              <Button
+                appearance="subtle"
+                icon={<Search20Regular />}
+                className="search-button"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Search"
+              />
+            </Tooltip>
+          </>
+        )}
       </div>
 
       {/* Divider */}
@@ -362,177 +429,40 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             aria-label="Activity"
           />
         </Tooltip>
-        {/* <Tooltip content="Note">
-          <Button
-            appearance="subtle"
-            icon={<TaskListSquareLtr20Regular className={`tab-icon tab-icon-note ${activeTab === "note" ? "" : ""}`} />}
-            className={`utility-button ${activeTab === "note" ? "active-tab-button" : ""}`}
-            onClick={() => setActiveTab("note")}
-            aria-label="Note"
-          />
-        </Tooltip> */}
       </div>
 
       {/* Tab Content */}
       <div className="scrollable-content">
         {activeTab === "info" && (
           <div className="info-container">
-            {/* LinkedIn */}
-            <InlineEditField
-              label="LinkedIn"
-              value={linkedIn || "No LinkedIn"}
-              isEditing={editingField === "linkedIn"}
-              onEdit={() => setEditingField("linkedIn")}
-              onSave={() => setEditingField(null)}
-              editComponent={
-                <Input
-                  value={linkedIn}
-                  onChange={(_e, data) => setLinkedIn(data.value)}
-                  placeholder="Enter LinkedIn URL"
-                  className="input-full-width"
-                />
-              }
-            />
+            {filteredFields.map((field) => {
+              const currentValue = getFieldValue(field);
+              const isEditing = editingFieldId === field.fieldoriginid;
 
-            {/* Mobile Phone */}
-            <div className="field-container">
-              <Text className="field-label">Mobile Phone</Text>
-              {editingField === "mobilePhone" ? (
-                <div className="mobile-input-container">
-                  <div className="mobile-main-row">
-                    <select
-                      className="country-select"
-                      value={mobileCountry}
-                      onChange={(e) => setMobileCountry(e.target.value)}
-                    >
-                      <option value="US">🇺🇸 +1</option>
-                      <option value="UK">🇬🇧 +44</option>
-                      <option value="IN">🇮🇳 +91</option>
-                      <option value="CA">🇨🇦 +1</option>
-                      <option value="AU">🇦🇺 +61</option>
-                    </select>
+              return (
+                <InlineEditField
+                  key={field.fieldoriginid}
+                  label={field.fieldname}
+                  value={currentValue}
+                  isEditing={isEditing}
+                  onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
+                  onSave={() => handleSave(field.fieldoriginid)}
+                  editComponent={
                     <Input
-                      value={mobileNumber}
-                      onChange={(_e, data) => setMobileNumber(data.value)}
-                      placeholder="No Phone"
+                      value={editValues[field.fieldoriginid] || ""}
+                      onChange={(_e, data) => handleEditChange(field.fieldoriginid, data.value)}
+                      placeholder={`Enter ${field.fieldname}`}
                       className="input-full-width"
                     />
-                    <Button
-                      appearance="subtle"
-                      icon={<Checkmark20Regular className="check-icon" />}
-                      onClick={() => setEditingField(null)}
-                      aria-label="Save"
-                    />
-                  </div>
-                  <Input
-                    value={mobileExt}
-                    onChange={(_e, data) => setMobileExt(data.value)}
-                    placeholder="Ext"
-                    className="ext-input"
-                  />
-                </div>
-              ) : (
-                <div
-                  className="field-value-interactive"
-                  onClick={() => setEditingField("mobilePhone")}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {mobileNumber ? (
-                    <span>
-                      {mobileCountry === "US" && "🇺🇸"}
-                      {mobileCountry === "UK" && "🇬🇧"}
-                      {mobileCountry === "IN" && "🇮🇳"}
-                      {mobileCountry === "CA" && "🇨🇦"}
-                      {mobileCountry === "AU" && "🇦🇺"} {mobileNumber}{" "}
-                      {mobileExt ? `ext ${mobileExt}` : ""}
-                    </span>
-                  ) : (
-                    "No Phone"
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Consent Date */}
-            <InlineEditField
-              label="Consent Date"
-              value={consentDate || "YYYY-MM-DD"}
-              isEditing={editingField === "consentDate"}
-              onEdit={() => setEditingField("consentDate")}
-              onSave={() => setEditingField(null)}
-              editComponent={
-                <Input
-                  type="date"
-                  value={consentDate}
-                  onChange={(_e, data) => setConsentDate(data.value)}
-                  className="input-full-width"
+                  }
                 />
-              }
-            />
-
-            {/* Consent for Call */}
-            <InlineEditField
-              label="Consent for Call"
-              value={consentForCall || "No consent_for_call"}
-              isEditing={editingField === "consentForCall"}
-              onEdit={() => setEditingField("consentForCall")}
-              onSave={() => setEditingField(null)}
-              editComponent={
-                <Input
-                  value={consentForCall}
-                  onChange={(_e, data) => setConsentForCall(data.value)}
-                  placeholder="Enter consent status"
-                  className="input-full-width"
-                />
-              }
-            />
-
-            {/* Account */}
-            <InlineEditField
-              label="Account"
-              value={account || "--"}
-              isEditing={editingField === "account"}
-              onEdit={() => setEditingField("account")}
-              onSave={() => setEditingField(null)}
-              editComponent={
-                <Input
-                  value={account}
-                  onChange={(_e, data) => setAccount(data.value)}
-                  placeholder="Enter Account"
-                  className="input-full-width"
-                />
-              }
-            />
-
-            {/* Dynamic Fields from PROSPECT_INFO (remaining items) */}
-            {extraFields.map((field, index) => (
-              <InlineEditField
-                key={`${field.title}-${index}`}
-                label={field.title}
-                value={field.value}
-                isEditing={editingField === `extra-${index}`}
-                onEdit={() => setEditingField(`extra-${index}`)}
-                onSave={() => setEditingField(null)}
-                editComponent={
-                  <Input
-                    value={field.value}
-                    onChange={(_e, data) => handleExtraFieldChange(index, data.value)}
-                    className="input-full-width"
-                  />
-                }
-              />
-            ))}
+              );
+            })}
           </div>
         )}
         {activeTab === "activity" && (
           <div className="info-container">
             <Text className="info-title">No recent activity</Text>
-          </div>
-        )}
-        {activeTab === "note" && (
-          <div className="info-container">
-            <Text className="info-title">No notes</Text>
           </div>
         )}
       </div>
@@ -541,7 +471,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         isOpen={isAddToSequenceModalOpen}
         onClose={() => setIsAddToSequenceModalOpen(false)}
       />
-    </section>
+    </section >
   );
 };
 

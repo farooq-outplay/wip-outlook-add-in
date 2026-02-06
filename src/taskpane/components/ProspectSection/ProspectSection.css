@@ -324,3 +324,36 @@
 .check-icon {
   color: var(--colorBrandForeground1);
 }
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  flex: 1; /* Allow it to take available space */
+  margin-left: 8px; /* Spacing from social icons */
+  min-width: 0; /* Prevents overflow in flex container */
+}
+
+.prospect-search-input {
+  width: 100%;
+}
+
+.prospect-search-input .fui-Input__content {
+  border-bottom: 1px solid var(--colorNeutralStroke1); /* Bottom border style as requested */
+  /* Remove default border if needed or adjust to match exact image style which looks like standard input but clean */
+}
+
+/* Ensure social icons don't shrink too much if space is tight */
+.social-icons {
+  flex-shrink: 0;
+}
+
+.search-clear-button {
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--colorNeutralForeground3);
+}
+
+.search-icon {
+  color: var(--colorNeutralForeground3);
+}
