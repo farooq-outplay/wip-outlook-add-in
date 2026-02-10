@@ -82,8 +82,18 @@ const PROSPECT_FIELDS_CONFIG = [
   { fieldoriginid: 14, fieldname: "LinkedIn", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 17, fieldname: "Twitter", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 7, fieldname: "Company", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: 1, iscustomfield: false }
+  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 1, fieldname: "Email", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 2, fieldname: "Phone", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 3, fieldname: "First Name", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 4, fieldname: "Last Name", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 5, fieldname: "Title", fieldtype: 1, iscustomfield: false }
 ];
+
+
+
+
+
 
 const ProspectSection: React.FC<ProspectSectionProps> = ({
   accessToken,
@@ -189,6 +199,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     const key = field.fieldname.toLowerCase().replace(/\s+/g, ''); // "Prospect Interests" -> "prospectinterests"
 
     if (key === "company") return prospect.prospectaccount || prospect.company || "";
+    if (key === "email") return prospect.emailid || "";
+    if (key === "phone") return prospect.flatphone || "";
+    if (key === "title") return prospect.designation || prospect.title || "";
+    if (key === "firstname") return prospect.firstname || "";
+    if (key === "lastname") return prospect.lastname || "";
+
     // Check if it exists directly on prospect
     if (prospect[key]) return prospect[key];
 
