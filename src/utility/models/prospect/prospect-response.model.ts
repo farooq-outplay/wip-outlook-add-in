@@ -4,7 +4,16 @@
 
 export enum ProspectFieldType {
   Text = 1,
-  // extend if backend adds more
+  // Custom Field Types
+  prospect_date = "prospect_date",
+  prospect_date_time = "prospect_date_time",
+  prospect_dropdown = "prospect_dropdown",
+  prospect_lookup = "prospect_lookup",
+  prospect_multi_line = "prospect_multi_line",
+  prospect_number = "prospect_number",
+  prospect_pick_list = "prospect_pick_list",
+  prospect_text = "prospect_text",
+  prospect_url = "prospect_url",
 }
 
 export enum EmailStatus {
@@ -23,6 +32,7 @@ export interface ProspectField {
   fieldname?: string;
   fieldtype?: ProspectFieldType;
   iscustomfield?: boolean;
+  value?: string;
 }
 
 export interface ProspectEmail {
