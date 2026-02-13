@@ -88,8 +88,22 @@ const PROSPECT_FIELDS_CONFIG = [
   { fieldoriginid: 2, fieldname: "Phone", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 3, fieldname: "First Name", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 4, fieldname: "Last Name", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 5, fieldname: "Title", fieldtype: 1, iscustomfield: false }
+  { fieldoriginid: 5, fieldname: "Title", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 101, fieldname: "SDR First Touch Date", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 102, fieldname: "Created Date", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 103, fieldname: "Last Contacted Date", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 104, fieldname: "Last Modified Date", fieldtype: 1, iscustomfield: false }
 ];
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return dateString;
+  }
+  return date.toLocaleDateString();
+};
 
 
 
@@ -197,7 +211,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const getProspectInfoByEmail = async (email: string) => {
     try {
       const response = await getProspectByEmail(email);
-      // console.log("Prospect Data Loaded:", response); // Debugging
+      console.log("Prospect Data Loaded:", response); // Debugging
+      if (response && (response as any).data) {
+        console.log("Prospect Fields Keys:", Object.keys((response as any).data));
+        console.log("Prospect Details:", (response as any).data.prospectDetails);
+        console.log("Prospect Fields List:", (response as any).data.prospectFieldsList);
+      }
 
       if (response && (response as any).success) {
         setProspect((response as any).data);
@@ -240,6 +259,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     if (key === "title") return prospect.designation || prospect.title || "";
     if (key === "firstname") return prospect.firstname || "";
     if (key === "lastname") return prospect.lastname || "";
+    // Try multiple variations for date fields, including prospectDetails
+    if (key === "sdrfirsttouchdate") return formatDate(prospect.sdrfirsttouchdate || prospect.firsttouchdate || prospect.prospectDetails?.firsttouchdate);
+    if (key === "createddate") return formatDate(prospect.createddate);
+    if (key === "lastcontacteddate") return formatDate(prospect.lastcontacteddate || prospect.lasttouchdate || prospect.prospectDetails?.lasttouchdate);
+    if (key === "lastmodifieddate") return formatDate(prospect.lastmodifieddate);
 
     // Check if it exists directly on prospect
     if (prospect[key]) return prospect[key];
@@ -315,20 +339,22 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     }
 
     // 3. Update the property on updatedProspect
-    if (fieldConfig.iscustomfield) {
-      // Update in prospectFieldsList
-      if (updatedProspect.prospectFieldsList) {
-        const fieldIndex = updatedProspect.prospectFieldsList.findIndex((f: any) => f.fieldoriginid === fieldId);
-        if (fieldIndex !== -1) {
-          // Create copy of the field object
-          const updatedField = { ...updatedProspect.prospectFieldsList[fieldIndex], value: newValue, fieldtext: newValue }; // Optimistic update of text
-          // Create copy of the list
-          const updatedList = [...updatedProspect.prospectFieldsList];
-          updatedList[fieldIndex] = updatedField;
-          updatedProspect.prospectFieldsList = updatedList;
-        }
+
+    // Always try to update in prospectFieldsList if the field exists there (handles both custom and system fields in the list)
+    if (updatedProspect.prospectFieldsList) {
+      const fieldIndex = updatedProspect.prospectFieldsList.findIndex((f: any) => f.fieldoriginid === fieldId);
+      if (fieldIndex !== -1) {
+        // Create copy of the field object
+        const updatedField = { ...updatedProspect.prospectFieldsList[fieldIndex], value: newValue, fieldtext: newValue }; // Optimistic update of text
+        // Create copy of the list
+        const updatedList = [...updatedProspect.prospectFieldsList];
+        updatedList[fieldIndex] = updatedField;
+        updatedProspect.prospectFieldsList = updatedList;
       }
-    } else {
+    }
+
+    // Update root property for standard fields if needed (compatibility with legacy props)
+    if (!fieldConfig.iscustomfield) {
       // Standard/System Field Mapping 
       const key = fieldConfig.fieldname.toLowerCase().replace(/\s+/g, '');
 
@@ -607,44 +633,62 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 );
               })}
 
-            {/* Show More Options Button (Only if no search query) */}
-            {!searchQuery && prospect?.prospectFieldsList?.some((f: any) => f.iscustomfield) && (
+            {/* Show More Options Button (Only if no search query AND collapsed) */}
+            {!searchQuery && !showCustomFields && prospect?.prospectFieldsList?.some((f: any) => f.iscustomfield) && (
               <div style={{ padding: "8px 0" }}>
                 <Button
                   appearance="subtle"
-                  onClick={() => setShowCustomFields(!showCustomFields)}
-                  className="show-more-button" // You might want to add this class to css or just use style
-                  style={{ paddingLeft: 0, fontWeight: "normal", color: "var(--colorBrandForeground1)" }} // Matching reference link style roughly
+                  onClick={() => setShowCustomFields(true)}
+                  className="show-more-button"
+                  style={{ paddingLeft: 0, fontWeight: "normal", color: "var(--colorBrandForeground1)" }}
                 >
-                  {showCustomFields ? "Show Less Options" : "Show More Options"}
+                  Show More Options
                 </Button>
               </div>
             )}
 
             {/* Custom Fields (Visible if toggled ON or if Finding via Search) */}
-            {(showCustomFields || searchQuery) && displayFields
-              .filter((field) => field.iscustomfield)
-              .map((field) => {
-                const currentValue = getFieldValue(field);
-                const isEditing = editingFieldId === field.fieldoriginid;
-                return (
-                  <InlineEditField
-                    key={field.fieldoriginid}
-                    label={field.fieldname}
-                    value={currentValue}
-                    isEditing={isEditing}
-                    onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
-                    onSave={() => handleSave(field.fieldoriginid)}
-                    editComponent={
-                      renderCustomFieldInput(
-                        field,
-                        editValues[field.fieldoriginid] || "",
-                        (val) => handleEditChange(field.fieldoriginid, val)
-                      )
-                    }
-                  />
-                );
-              })}
+            {(showCustomFields || searchQuery) && (
+              <>
+                {displayFields
+                  .filter((field) => field.iscustomfield)
+                  .map((field) => {
+                    const currentValue = getFieldValue(field);
+                    const isEditing = editingFieldId === field.fieldoriginid;
+                    return (
+                      <InlineEditField
+                        key={field.fieldoriginid}
+                        label={field.fieldname}
+                        value={currentValue}
+                        isEditing={isEditing}
+                        onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
+                        onSave={() => handleSave(field.fieldoriginid)}
+                        editComponent={
+                          renderCustomFieldInput(
+                            field,
+                            editValues[field.fieldoriginid] || "",
+                            (val) => handleEditChange(field.fieldoriginid, val)
+                          )
+                        }
+                      />
+                    );
+                  })}
+
+                {/* Show Less Options Button (Only if no search query AND expanded) */}
+                {!searchQuery && showCustomFields && (
+                  <div style={{ padding: "8px 0" }}>
+                    <Button
+                      appearance="subtle"
+                      onClick={() => setShowCustomFields(false)}
+                      className="show-more-button"
+                      style={{ paddingLeft: 0, fontWeight: "normal", color: "var(--colorBrandForeground1)" }}
+                    >
+                      Show Less Options
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
         {activeTab === "activity" && (

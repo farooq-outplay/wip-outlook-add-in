@@ -50,6 +50,8 @@ export interface ProspectDetails {
   sequenceID?: number;
   sequenceStepID?: number;
   steporder?: number;
+  firsttouchdate?: string;
+  lasttouchdate?: string;
 }
 
 /* ============================
@@ -87,6 +89,11 @@ export interface ProspectData {
   prospectaccount?: string;
   prospectowner?: string;
   designation?: string;
+
+  firsttouchdate?: string;
+  lasttouchdate?: string;
+  sdrfirsttouchdate?: string;
+  lastcontacteddate?: string;
 
   prospectstatus?: number;
   lastmodifieddate?: string; // ISO string
