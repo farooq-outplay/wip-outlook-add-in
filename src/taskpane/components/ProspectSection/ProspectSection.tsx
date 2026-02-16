@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Button, Text, Avatar, Link, Divider, Input, Tooltip, Textarea } from "@fluentui/react-components";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { Button, Text, Avatar, Link, Divider, Input, Tooltip, Textarea, Checkbox, Select } from "@fluentui/react-components";
 
 import {
   Clock20Regular,
@@ -17,10 +17,12 @@ import {
   faEnvelope,
   faListCheck,
   faCircleInfo,
+  faPencil,
 } from "@fortawesome/free-solid-svg-icons";
 import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
+import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
 import { getProspectByEmail, saveProspect } from "../../../utility/api/prospectService";
 
 interface ProspectSectionProps {
@@ -49,14 +51,57 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   onSave,
   editComponent,
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocusedWithin, setIsFocusedWithin] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showIcon = isHovered || isFocusedWithin || isEditing;
+
+  const handleContainerBlur = useCallback(
+    (e: React.FocusEvent<HTMLDivElement>) => {
+      // Use setTimeout so relatedTarget is populated and we can check if focus
+      // moved to another child within the same container
+      blurTimeoutRef.current = setTimeout(() => {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(document.activeElement)
+        ) {
+          setIsFocusedWithin(false);
+          if (isEditing) {
+            onSave();
+          }
+        }
+      }, 0);
+    },
+    [isEditing, onSave]
+  );
+
+  const handleContainerFocus = useCallback(() => {
+    // Clear any pending blur timeout (focus moved between children)
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    setIsFocusedWithin(true);
+  }, []);
+
   return (
-    <div className="field-container">
+    <div
+      className="field-container"
+      ref={containerRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={handleContainerFocus}
+      onBlur={handleContainerBlur}
+    >
       <Text className="field-label">{label}</Text>
       {isEditing ? (
         <div className="field-edit-row">
           {editComponent}
           <Button
             appearance="subtle"
+            className={`field-edit-icon ${showIcon ? "visible" : ""}`}
             icon={<Checkmark20Regular className="check-icon" />}
             onClick={(e) => {
               e.stopPropagation();
@@ -66,8 +111,24 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
           />
         </div>
       ) : (
-        <div className="field-value-interactive" onClick={onEdit} role="button" tabIndex={0}>
-          {value || <span className="empty-placeholder">Empty</span>}
+        <div
+          className="field-value-row"
+          onClick={onEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onEdit();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <span className="field-value-text">
+            {value || <span className="empty-placeholder">Empty</span>}
+          </span>
+          <span className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}>
+            <FontAwesomeIcon icon={faPencil} style={{ color: "currentColor", fontSize: "10px" }} />
+          </span>
         </div>
       )}
     </div>
@@ -75,34 +136,56 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
 };
 
 // Realtime prospect field list as single source of truth
-const PROSPECT_FIELDS_CONFIG = [
+const PROSPECT_FIELDS_CONFIG: Array<{ fieldoriginid: number; fieldname: string; fieldtype: number | string; iscustomfield: boolean; options?: string[] }> = [
   { fieldoriginid: 8, fieldname: "City", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 9, fieldname: "State", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 10, fieldname: "Country", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 11, fieldname: "Facebook", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 14, fieldname: "LinkedIn", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 17, fieldname: "Twitter", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 11, fieldname: "Facebook", fieldtype: "prospect_url", iscustomfield: false },
+  { fieldoriginid: 14, fieldname: "LinkedIn", fieldtype: "prospect_url", iscustomfield: false },
+  { fieldoriginid: 17, fieldname: "Twitter", fieldtype: "prospect_url", iscustomfield: false },
   { fieldoriginid: 7, fieldname: "Company", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 1, fieldname: "Email", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 2, fieldname: "Phone", fieldtype: 1, iscustomfield: false },
+  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: "prospect_multi_line", iscustomfield: false },
+  { fieldoriginid: 1, fieldname: "Email", fieldtype: "email", iscustomfield: false },
+  { fieldoriginid: 2, fieldname: "Phone", fieldtype: "phone", iscustomfield: false },
   { fieldoriginid: 3, fieldname: "First Name", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 4, fieldname: "Last Name", fieldtype: 1, iscustomfield: false },
   { fieldoriginid: 5, fieldname: "Title", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 101, fieldname: "SDR First Touch Date", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 102, fieldname: "Created Date", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 103, fieldname: "Last Contacted Date", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 104, fieldname: "Last Modified Date", fieldtype: 1, iscustomfield: false }
+  { fieldoriginid: 101, fieldname: "SDR First Touch Date", fieldtype: "prospect_date", iscustomfield: false },
+  { fieldoriginid: 102, fieldname: "Created Date", fieldtype: "prospect_date", iscustomfield: false },
+  { fieldoriginid: 103, fieldname: "Last Contacted Date", fieldtype: "prospect_date", iscustomfield: false },
+  { fieldoriginid: 104, fieldname: "Last Modified Date", fieldtype: "prospect_date", iscustomfield: false }
 ];
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "—";
   const date = new Date(dateString);
-  // Check if date is valid
   if (isNaN(date.getTime())) {
     return dateString;
   }
   return date.toLocaleDateString();
+};
+
+/** Convert an ISO/date string to YYYY-MM-DD for <input type="date"> */
+const toDateInputValue = (dateString?: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return date.toISOString().split("T")[0];
+};
+
+/** Check if a fieldtype represents a date */
+const isDateFieldType = (fieldtype: number | string) => {
+  const ft = typeof fieldtype === "string" ? fieldtype.toLowerCase() : fieldtype;
+  return ft === "prospect_date" || ft === "prospect_date_time" || ft === 3 || ft === 5;
+};
+
+/** Format a value for display (read mode) based on field type */
+const getDisplayValue = (field: { fieldtype: number | string }, rawValue: string) => {
+  if (!rawValue) return "";
+  if (isDateFieldType(field.fieldtype)) {
+    return formatDate(rawValue);
+  }
+  return rawValue;
 };
 
 
@@ -229,29 +312,25 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     }
   };
 
-  // Helper to resolve field value from prospect object
+  // Helper to resolve raw field value from prospect object (NOT pre-formatted)
   const getFieldValue = (field: typeof PROSPECT_FIELDS_CONFIG[0]) => {
     if (!prospect) return "";
 
     // 1. Priority: Check prospectFieldsList for exact match or name match
     if (prospect.prospectFieldsList) {
-      // Try verify by ID first (most robust)
       const fieldItem = prospect.prospectFieldsList.find((f: any) => f.fieldoriginid === field.fieldoriginid);
       if (fieldItem) {
-        // Use fieldtext for display if available, fallback to value
         return fieldItem.fieldtext ?? fieldItem.value ?? "";
       }
 
-      // Fallback: Try verify by name (case-insensitive) if ID mapping fails or fieldoriginid is missing in config
       const fieldItemByName = prospect.prospectFieldsList.find((f: any) => f.fieldname.toLowerCase() === field.fieldname.toLowerCase());
       if (fieldItemByName) {
         return fieldItemByName.fieldtext ?? fieldItemByName.value ?? "";
       }
     }
 
-    // 2. Fallback: Direct property access for legacy/core fields not in list or if list is partial
-    // Standard/System Field Mapping 
-    const key = field.fieldname.toLowerCase().replace(/\s+/g, ''); // "Prospect Interests" -> "prospectinterests"
+    // 2. Fallback: Direct property access for legacy/core fields
+    const key = field.fieldname.toLowerCase().replace(/\s+/g, '');
 
     if (key === "company") return prospect.prospectaccount || prospect.company || "";
     if (key === "email") return prospect.emailid || "";
@@ -259,49 +338,125 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     if (key === "title") return prospect.designation || prospect.title || "";
     if (key === "firstname") return prospect.firstname || "";
     if (key === "lastname") return prospect.lastname || "";
-    // Try multiple variations for date fields, including prospectDetails
-    if (key === "sdrfirsttouchdate") return formatDate(prospect.sdrfirsttouchdate || prospect.firsttouchdate || prospect.prospectDetails?.firsttouchdate);
-    if (key === "createddate") return formatDate(prospect.createddate);
-    if (key === "lastcontacteddate") return formatDate(prospect.lastcontacteddate || prospect.lasttouchdate || prospect.prospectDetails?.lasttouchdate);
-    if (key === "lastmodifieddate") return formatDate(prospect.lastmodifieddate);
+    // Return RAW date strings — formatting happens at display time
+    if (key === "sdrfirsttouchdate") return prospect.sdrfirsttouchdate || prospect.firsttouchdate || prospect.prospectDetails?.firsttouchdate || "";
+    if (key === "createddate") return prospect.createddate || "";
+    if (key === "lastcontacteddate") return prospect.lastcontacteddate || prospect.lasttouchdate || prospect.prospectDetails?.lasttouchdate || "";
+    if (key === "lastmodifieddate") return prospect.lastmodifieddate || "";
 
-    // Check if it exists directly on prospect
     if (prospect[key]) return prospect[key];
-
-    // Check if it exists with exact casing
     if (prospect[field.fieldname]) return prospect[field.fieldname];
-
-    // Check lowercase
     if (prospect[field.fieldname.toLowerCase()]) return prospect[field.fieldname.toLowerCase()];
 
     return "";
   };
 
-  const renderCustomFieldInput = (field: any, currentValue: string, onChange: (val: string) => void) => {
-    const commonProps = {
+  const renderFieldInput = (field: any, currentValue: string, onChange: (val: string) => void) => {
+    // Force fieldtype to lowercase string for robust matching
+    const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
+
+    const commonInputProps = {
       value: currentValue,
       onChange: (_e: any, data: any) => onChange(data.value),
       placeholder: `Enter ${field.fieldname}`,
       className: "input-full-width",
     };
 
-    switch (field.fieldtype) {
-      case "prospect_date":
-        return <Input {...commonProps} type="date" />;
-      case "prospect_date_time":
-        return <Input {...commonProps} type="datetime-local" />;
-      case "prospect_number":
-        return <Input {...commonProps} type="number" />;
-      case "prospect_url":
-        return <Input {...commonProps} type="url" />;
-      case "prospect_multi_line":
-        // Fluent UI Input as textarea? Or actual Textarea component?
-        // Using Input for now, maybe add 'as="textarea"' if supported or separate component
-        return <Input {...commonProps} />; // Placeholder, ideally a TextArea
-      case "prospect_text":
-      default:
-        return <Input {...commonProps} />;
+    // ── Date / DateTime (ft=3/5) ──
+    if (ft === "prospect_date" || ft === 3) {
+      return (
+        <Input
+          {...commonInputProps}
+          type="date"
+          value={toDateInputValue(currentValue)}
+          onChange={(_e: any, data: any) => onChange(data.value)}
+        />
+      );
     }
+    if (ft === "prospect_date_time" || ft === 5) {
+      return <Input {...commonInputProps} type="datetime-local" />;
+    }
+
+    // ── Number (ft=2) ──
+    if (ft === "prospect_number" || ft === 2) {
+      return <Input {...commonInputProps} type="number" />;
+    }
+
+    // ── Email ──
+    if (ft === "email") {
+      return <Input {...commonInputProps} type="email" />;
+    }
+
+    // ── URL (ft=9) ──
+    if (ft === "prospect_url" || ft === 9) {
+      return <Input {...commonInputProps} type="url" />;
+    }
+
+    // ── Multi-line / Textarea (ft=15) ──
+    if (ft === "prospect_multi_line" || ft === 15) {
+      return (
+        <Textarea
+          value={currentValue}
+          onChange={(_e: any, data: any) => onChange(data.value)}
+          placeholder={`Enter ${field.fieldname}`}
+          className="input-full-width field-textarea"
+          resize="vertical"
+          rows={3}
+        />
+      );
+    }
+
+    // ── Dropdown / Pick-list (ft=6, 14) ──
+    if (
+      ft === "prospect_dropdown" ||
+      ft === "prospect_pick_list" ||
+      ft === "prospect_picklist" ||
+      ft === "prospect_single_select_dropdown" ||
+      ft === 6 ||
+      ft === 14
+    ) {
+      const options: string[] = field.options || field.fieldoptions || [];
+      return (
+        <Select
+          value={currentValue}
+          onChange={(_e: any, data: any) => onChange(data.value)}
+          className="input-full-width field-select"
+        >
+          <option value="">Select {field.fieldname}</option>
+          {options.map((opt: string) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </Select>
+      );
+    }
+
+    // ── Lookup (ft=8) ──
+    if (ft === "prospect_lookup" || ft === 8) {
+      return (
+        <Input
+          {...commonInputProps}
+          contentAfter={<Search20Regular className="search-icon" />}
+          type="text"
+          placeholder={`Search ${field.fieldname}...`}
+        />
+      );
+    }
+
+    // ── Boolean ──
+    if (ft === "prospect_boolean" || ft === "boolean") {
+      return (
+        <div className="field-toggle-row">
+          <Checkbox
+            checked={currentValue === "true"}
+            onChange={(_e: any, data: any) => onChange(data.checked ? "true" : "false")}
+            label={field.fieldname}
+          />
+        </div>
+      );
+    }
+
+    // ── Default: Text input (fieldtype 1 or prospect_text or unknown) ──
+    return <Input {...commonInputProps} type="text" />;
   };
 
   const handleEditStart = (fieldId: number, currentValue: string) => {
@@ -614,16 +769,82 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               .map((field) => {
                 const currentValue = getFieldValue(field);
                 const isEditing = editingFieldId === field.fieldoriginid;
+
+                // ── Phone field: custom renderer ──
+                if (field.fieldoriginid === 2) {
+                  return (
+                    <div className="field-container" key={field.fieldoriginid}>
+                      <Text className="field-label">Mobile Phone (Default)</Text>
+                      {isEditing ? (
+                        <PhoneInputWithCountrySelector
+                          value={String(currentValue)}
+                          onSave={(fullPhone) => {
+                            handleEditChange(field.fieldoriginid, fullPhone);
+                            // Use a micro-task so editValues is flushed before handleSave reads it
+                            setTimeout(() => {
+                              setEditValues((prev) => {
+                                const updated = { ...prev, [field.fieldoriginid]: fullPhone };
+                                // Trigger save with the updated value
+                                const doSave = async () => {
+                                  const updatedProspect = { ...prospect };
+                                  if (updatedProspect.prospectFieldsList) {
+                                    const idx = updatedProspect.prospectFieldsList.findIndex(
+                                      (f: any) => f.fieldoriginid === field.fieldoriginid
+                                    );
+                                    if (idx !== -1) {
+                                      const updatedField = {
+                                        ...updatedProspect.prospectFieldsList[idx],
+                                        value: fullPhone,
+                                        fieldtext: fullPhone,
+                                      };
+                                      const updatedList = [...updatedProspect.prospectFieldsList];
+                                      updatedList[idx] = updatedField;
+                                      updatedProspect.prospectFieldsList = updatedList;
+                                    }
+                                  }
+                                  updatedProspect.flatphone = fullPhone;
+                                  try {
+                                    setProspect(updatedProspect);
+                                    setEditingFieldId(null);
+                                    await saveProspect(updatedProspect);
+                                  } catch (error) {
+                                    console.error("Failed to save phone:", error);
+                                  }
+                                };
+                                doSave();
+                                return updated;
+                              });
+                            }, 0);
+                          }}
+                          onCancel={() => setEditingFieldId(null)}
+                        />
+                      ) : (
+                        <div
+                          className="field-value-row"
+                          onClick={() => handleEditStart(field.fieldoriginid, String(currentValue))}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          <span className="field-value-text">
+                            {currentValue || <span className="empty-placeholder">No Phone</span>}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // ── All other system fields: generic InlineEditField ──
                 return (
                   <InlineEditField
                     key={field.fieldoriginid}
                     label={field.fieldname}
-                    value={currentValue}
+                    value={getDisplayValue(field, String(currentValue))}
                     isEditing={isEditing}
                     onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                     onSave={() => handleSave(field.fieldoriginid)}
                     editComponent={
-                      renderCustomFieldInput(
+                      renderFieldInput(
                         field,
                         editValues[field.fieldoriginid] || "",
                         (val) => handleEditChange(field.fieldoriginid, val)
@@ -659,12 +880,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                       <InlineEditField
                         key={field.fieldoriginid}
                         label={field.fieldname}
-                        value={currentValue}
+                        value={getDisplayValue(field, String(currentValue))}
                         isEditing={isEditing}
                         onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                         onSave={() => handleSave(field.fieldoriginid)}
                         editComponent={
-                          renderCustomFieldInput(
+                          renderFieldInput(
                             field,
                             editValues[field.fieldoriginid] || "",
                             (val) => handleEditChange(field.fieldoriginid, val)

@@ -16,15 +16,20 @@ import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { Pause20Regular, CheckmarkCircle20Regular, Prohibited20Regular, Delete20Regular, Dismiss24Regular } from "@fluentui/react-icons";
 import "./Dialog.css";
 
+import { getSequences, Sequence } from "../../utility/api/sequenceService";
 
 const Dialog: React.FC = () => {
   // Mock data
-  const sequences = ["Outbound Sequence 1", "Follow-up Campaign", "Nurture Track"];
+  // const sequences = ["Outbound Sequence 1", "Follow-up Campaign", "Nurture Track"];
   const senders = ["deeksha.t@outplayhq.com (Default)", "sales@outplayhq.com"];
   const opportunities = ["Most recently updated open", "New Deal 2024", "Main Account Expansion"];
   const dispositions = ["Connected", "Left Voicemail", "Busy", "Wrong Number"];
 
   // State
+  const [sequences, setSequences] = useState<Sequence[]>([]);
+  const [isLoadingSequences, setIsLoadingSequences] = useState<boolean>(false);
+  const [sequenceError, setSequenceError] = useState<string | null>(null);
+
   const [selectedSequence, setSelectedSequence] = useState<string>("");
   const [selectedSender, setSelectedSender] = useState<string>(senders[0]);
   const [selectedOpportunity, setSelectedOpportunity] = useState<string>(opportunities[0]);
@@ -37,6 +42,25 @@ const Dialog: React.FC = () => {
     const type = params.get("type");
     if (type) {
       setDialogType(type);
+    }
+
+    // Fetch sequences
+    if (!type || type === "default") {
+      setIsLoadingSequences(true);
+      setSequenceError(null);
+      getSequences()
+        .then((result) => {
+          if (result.success) {
+            setSequences(result.data);
+          } else {
+            setSequenceError(result.error || "Failed to load sequences");
+          }
+          setIsLoadingSequences(false);
+        })
+        .catch(() => {
+          setSequenceError("An error occurred while fetching sequences");
+          setIsLoadingSequences(false);
+        });
     }
   }, []);
 
@@ -287,18 +311,23 @@ const Dialog: React.FC = () => {
           {/* Search Sequences */}
           <div className="field-group">
             <Combobox
-              placeholder="Search Sequences"
+              placeholder={isLoadingSequences ? "Loading sequences..." : "Search Sequences"}
               className="dropdown-full-width"
               onOptionSelect={(_e, data) => setSelectedSequence(data.optionText || "")}
               value={selectedSequence}
               onChange={(e) => setSelectedSequence(e.target.value)}
+              disabled={isLoadingSequences}
             >
               {sequences.map((seq) => (
-                <Option key={seq} text={seq}>
-                  {seq}
+                <Option key={seq.id} text={seq.name}>
+                  {seq.name}
                 </Option>
               ))}
             </Combobox>
+            {sequenceError && <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>{sequenceError}</div>}
+            {!isLoadingSequences && !sequenceError && sequences.length === 0 && (
+              <div style={{ color: "gray", fontSize: "12px", marginTop: "4px" }}>No sequences found</div>
+            )}
           </div>
 
           {/* Send Email From */}

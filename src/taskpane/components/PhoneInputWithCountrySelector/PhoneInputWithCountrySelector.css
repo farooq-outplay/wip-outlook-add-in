@@ -1,0 +1,71 @@
+/* ==============================
+   PhoneInputWithCountrySelector
+   - Wraps intl-tel-input library
+   ============================== */
+
+.phone-selector-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  position: relative;
+}
+
+/* Let the intl-tel-input wrapper fill available space */
+.phone-iti-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Override intl-tel-input container to fill width */
+.phone-iti-wrapper .iti {
+  width: 100%;
+}
+
+/* Style the phone input */
+.phone-iti-wrapper .iti input.phone-number-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--colorNeutralForeground1, #242424);
+  background: var(--colorNeutralBackground1, #fff);
+  border: 1px solid var(--colorNeutralStroke1, #d1d1d1);
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.phone-iti-wrapper .iti input.phone-number-input:focus {
+  border-color: var(--colorBrandForeground1, #0078d4);
+}
+
+.phone-iti-wrapper .iti input.phone-number-input::placeholder {
+  color: var(--colorNeutralForeground3, #a0a0a0);
+}
+
+/* --- Save button --- */
+.phone-save-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--colorBrandForeground1, #0078d4);
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.12s;
+  margin-left: 4px;
+}
+
+.phone-save-button:hover {
+  background: var(--colorNeutralBackground1Hover, #f5f5f5);
+}
+
+/* Ensure the dropdown renders above other content */
+.iti__dropdown-content {
+  z-index: 1000 !important;
+}
