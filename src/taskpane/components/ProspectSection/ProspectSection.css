@@ -241,13 +241,13 @@
 .field-value-row:hover {
   background-color: var(--colorNeutralBackground1Hover);
   border: 1px solid var(--colorNeutralStroke1);
-  transform: translateX(8px);
+  transform: translateX(6px);
 }
 
 .field-value-row:focus-visible {
   background-color: var(--colorNeutralBackground1Hover);
   border: 1px solid var(--colorBrandStroke1);
-  transform: translateX(8px);
+  transform: translateX(6px);
 }
 
 .field-value-text {
