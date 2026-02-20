@@ -74,7 +74,6 @@
   align-items: center;
   margin-top: 16px;
   overflow: visible;
-  flex-wrap: wrap;
 }
 
 .action-button {
@@ -235,20 +234,23 @@
   min-height: 20px;
   outline: none;
   transform: translateX(0);
-  transition: transform 0.3s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.3s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   will-change: transform;
 }
 
 .field-value-row:hover {
   background-color: var(--colorNeutralBackground1Hover);
   border: 1px solid var(--colorNeutralStroke1);
-  transform: translateX(6px);
+  transform: translateX(8px);
 }
 
 .field-value-row:focus-visible {
   background-color: var(--colorNeutralBackground1Hover);
   border: 1px solid var(--colorBrandStroke1);
-  transform: translateX(6px);
+  transform: translateX(8px);
 }
 
 .field-value-text {
@@ -275,7 +277,9 @@
 
 .field-edit-icon-wrapper {
   opacity: 0;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,7 +289,7 @@
   border-radius: 5px;
   background-color: transparent;
   cursor: pointer;
-  color: #1B64FF;
+  color: #1b64ff;
 }
 
 .field-edit-icon-wrapper.visible {
@@ -294,7 +298,7 @@
 
 .field-edit-icon-wrapper:hover,
 .field-edit-icon-wrapper:focus-visible {
-  background-color: #1B64FF;
+  background-color: #1b64ff;
   color: #fff;
 }
 
@@ -333,8 +337,6 @@
   padding: 4px 0;
 }
 
-
-
 /* Specific Icons Colors */
 .icon-paperplane {
   color: #0861fd;
@@ -346,18 +348,6 @@
 
 .icon-listcheck {
   color: #b197fc;
-}
-
-.icon-phone {
-  color: #28c76f;
-}
-
-.icon-comment {
-  color: #ff9f43;
-}
-
-.icon-whatsapp {
-  color: #25d366;
 }
 
 .social-text {

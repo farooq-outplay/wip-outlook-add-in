@@ -1,7 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@fluentui/react-components";
-import { MoreHorizontal20Regular, Pause20Regular } from "@fluentui/react-icons";
-import Tooltip from "../Tooltip/Tooltip";
+import React, { useRef } from "react";
+import {
+  Button,
+  Menu,
+  MenuTrigger,
+  MenuList,
+  MenuItem,
+  MenuPopover,
+  Tooltip,
+} from "@fluentui/react-components";
+import { MoreHorizontal20Regular } from "@fluentui/react-icons";
 import "./MoreOptionsMenu.css";
 
 interface MoreOptionsMenuProps {
@@ -19,171 +26,7 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
   onDelete,
   onLogCall,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<Office.Dialog | null>(null);
-
-  const toggleMenu = () => setIsOpen((prev) => !prev);
-  const closeMenu = () => setIsOpen(false);
-
-  // Handle click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        closeMenu();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
-
-  // Handle Esc key
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeMenu();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
-
-  const handleAction = (callback?: () => void) => {
-    if (callback) callback();
-    closeMenu();
-  };
-
-  const handlePauseClick = () => {
-    closeMenu();
-    const url = new URL("/dialog.html?type=pause", window.location.origin).toString();
-
-    Office.context.ui.displayDialogAsync(
-      url,
-      { height: 40, width: 30, displayInIframe: true },
-      (asyncResult) => {
-        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-          console.error(asyncResult.error.message);
-        } else {
-          dialogRef.current = asyncResult.value;
-          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
-          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
-            if (arg.error === 12006) {
-              dialogRef.current = null;
-            }
-          });
-        }
-      }
-    );
-  };
-
-  const handleMarkFinishedClick = () => {
-    closeMenu();
-    const url = new URL("/dialog.html?type=markFinished", window.location.origin).toString();
-
-    Office.context.ui.displayDialogAsync(
-      url,
-      { height: 40, width: 30, displayInIframe: true },
-      (asyncResult) => {
-        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-          console.error(asyncResult.error.message);
-        } else {
-          dialogRef.current = asyncResult.value;
-          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
-          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
-            if (arg.error === 12006) {
-              dialogRef.current = null;
-            }
-          });
-        }
-      }
-    );
-  };
-
-  const handleOptOutClick = () => {
-    closeMenu();
-    const url = new URL("/dialog.html?type=optOut", window.location.origin).toString();
-
-    Office.context.ui.displayDialogAsync(
-      url,
-      { height: 40, width: 30, displayInIframe: true },
-      (asyncResult) => {
-        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-          console.error(asyncResult.error.message);
-        } else {
-          dialogRef.current = asyncResult.value;
-          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
-          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
-            if (arg.error === 12006) {
-              dialogRef.current = null;
-            }
-          });
-        }
-      }
-    );
-  };
-
-  const handleDeleteClick = () => {
-    closeMenu();
-    const url = new URL("/dialog.html?type=delete", window.location.origin).toString();
-
-    Office.context.ui.displayDialogAsync(
-      url,
-      { height: 40, width: 30, displayInIframe: true },
-      (asyncResult) => {
-        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-          console.error(asyncResult.error.message);
-        } else {
-          dialogRef.current = asyncResult.value;
-          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
-          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
-            if (arg.error === 12006) {
-              dialogRef.current = null;
-            }
-          });
-        }
-      }
-    );
-  };
-
-  const handleLogCallClick = () => {
-    closeMenu();
-    const url = new URL("/dialog.html?type=logCall", window.location.origin).toString();
-
-    Office.context.ui.displayDialogAsync(
-      url,
-      { height: 60, width: 40, displayInIframe: true },
-      (asyncResult) => {
-        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-          console.error(asyncResult.error.message);
-        } else {
-          dialogRef.current = asyncResult.value;
-          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
-          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
-            if (arg.error === 12006) {
-              dialogRef.current = null;
-            }
-          });
-        }
-      }
-    );
-  };
 
   const processMessage = (arg: any) => {
     let message;
@@ -219,61 +62,59 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
     }
   };
 
+  const openDialog = (type: string, width: number, height: number) => {
+    const url = new URL(`/dialog.html?type=${type}`, window.location.origin).toString();
+
+    Office.context.ui.displayDialogAsync(
+      url,
+      { height, width, displayInIframe: true },
+      (asyncResult) => {
+        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+          console.error(asyncResult.error.message);
+        } else {
+          dialogRef.current = asyncResult.value;
+          dialogRef.current.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
+          dialogRef.current.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
+            if (arg.error === 12006) {
+              dialogRef.current = null;
+            }
+          });
+        }
+      }
+    );
+  };
+
+  const handlePauseClick = () => openDialog("pause", 30, 40);
+  const handleMarkFinishedClick = () => openDialog("markFinished", 30, 40);
+  const handleOptOutClick = () => openDialog("optOut", 30, 40);
+  const handleDeleteClick = () => openDialog("delete", 30, 40);
+  const handleLogCallClick = () => openDialog("logCall", 40, 60);
+
   return (
-    <div className="more-options-container" ref={containerRef}>
-      <Tooltip content="More Options">
-        <Button
-          appearance="subtle"
-          icon={<MoreHorizontal20Regular />}
-          className="trigger-button"
-          onClick={toggleMenu}
-          aria-label="More Options"
-          aria-expanded={isOpen}
-          aria-haspopup="true"
-        />
-      </Tooltip>
+    <div className="more-options-container">
+      <Menu>
+        <MenuTrigger disableButtonEnhancement>
+          <Tooltip content="More Options" relationship="label">
+            <Button
+              appearance="subtle"
+              icon={<MoreHorizontal20Regular />}
+              className="trigger-button"
+              aria-label="More Options"
+            />
+          </Tooltip>
+        </MenuTrigger>
 
-      {isOpen && (
-        <div className="options-menu" role="menu">
-          <button
-            className="menu-item"
-            onClick={handlePauseClick}
-            role="menuitem"
-          >
-            Pause
-          </button>
-          <button
-            className="menu-item"
-            onClick={handleMarkFinishedClick}
-            role="menuitem"
-          >
-            Mark as Finished
-          </button>
-          <button
-            className="menu-item"
-            onClick={handleOptOutClick}
-            role="menuitem"
-          >
-            Opt-out
-          </button>
-          <button
-            className="menu-item"
-            onClick={handleDeleteClick}
-            role="menuitem"
-          >
-            Delete
-          </button>
-          <button
-            className="menu-item"
-            onClick={handleLogCallClick}
-            role="menuitem"
-          >
-            Log Call
-          </button>
-        </div>
-      )}
-
-    </div >
+        <MenuPopover>
+          <MenuList>
+            <MenuItem onClick={handlePauseClick}>Pause</MenuItem>
+            <MenuItem onClick={handleMarkFinishedClick}>Mark as Finished</MenuItem>
+            <MenuItem onClick={handleOptOutClick}>Opt-out</MenuItem>
+            <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
+            <MenuItem onClick={handleLogCallClick}>Log Call</MenuItem>
+          </MenuList>
+        </MenuPopover>
+      </Menu>
+    </div>
   );
 };
 

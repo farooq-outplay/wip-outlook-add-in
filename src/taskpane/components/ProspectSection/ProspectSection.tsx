@@ -7,7 +7,6 @@ import {
   Pulse20Regular,
   Share20Regular,
   Building20Regular,
-  Checkmark20Regular,
   Dismiss20Regular,
 } from "@fluentui/react-icons";
 
@@ -17,144 +16,48 @@ import {
   faEnvelope,
   faListCheck,
   faCircleInfo,
-  faPencil,
+  faPhone,
+  faCommentDots,
 } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
-import { getProspectByEmail, saveProspect } from "../../../utility/api/prospectService";
+import { saveProspect } from "../../../utility/api/prospectService";
+import InlineEditField from "../InlineEditField/InlineEditField";
 
 interface ProspectSectionProps {
-  accessToken?: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
+  prospect: any;
   onClose?: () => void;
 }
 
-interface InlineEditFieldProps {
-  label: string;
-  value: string | React.ReactNode;
-  isEditing: boolean;
-  onEdit: () => void;
-  onSave: () => void;
-  onCancel?: () => void;
-  editComponent: React.ReactNode;
-}
 
-const InlineEditField: React.FC<InlineEditFieldProps> = ({
-  label,
-  value,
-  isEditing,
-  onEdit,
-  onSave,
-  editComponent,
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocusedWithin, setIsFocusedWithin] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showIcon = isHovered || isFocusedWithin || isEditing;
-
-  const handleContainerBlur = useCallback(
-    (e: React.FocusEvent<HTMLDivElement>) => {
-      // Use setTimeout so relatedTarget is populated and we can check if focus
-      // moved to another child within the same container
-      blurTimeoutRef.current = setTimeout(() => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(document.activeElement)
-        ) {
-          setIsFocusedWithin(false);
-          if (isEditing) {
-            onSave();
-          }
-        }
-      }, 0);
-    },
-    [isEditing, onSave]
-  );
-
-  const handleContainerFocus = useCallback(() => {
-    // Clear any pending blur timeout (focus moved between children)
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-    setIsFocusedWithin(true);
-  }, []);
-
-  return (
-    <div
-      className="field-container"
-      ref={containerRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onFocus={handleContainerFocus}
-      onBlur={handleContainerBlur}
-    >
-      <Text className="field-label">{label}</Text>
-      {isEditing ? (
-        <div className="field-edit-row">
-          {editComponent}
-          <Button
-            appearance="subtle"
-            className={`field-edit-icon ${showIcon ? "visible" : ""}`}
-            icon={<Checkmark20Regular className="check-icon" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave();
-            }}
-            aria-label="Save"
-          />
-        </div>
-      ) : (
-        <div
-          className="field-value-row"
-          onClick={onEdit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onEdit();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-        >
-          <span className="field-value-text">
-            {value || <span className="empty-placeholder">Empty</span>}
-          </span>
-          <span className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}>
-            <FontAwesomeIcon icon={faPencil} style={{ color: "currentColor", fontSize: "10px" }} />
-          </span>
-        </div>
-      )}
-    </div>
-  );
+const predefinedFieldsNameForPin = {
+  FirstName: 1,
+  LastName: 2,
+  Email: 3,
+  Phone: 4,
+  Designation: 5,
+  Timezone: 6,
+  ProspectAccount: 7,
+  ProspectStage: 8,
+  Owner: 9,
 };
 
-// Realtime prospect field list as single source of truth
-const PROSPECT_FIELDS_CONFIG: Array<{ fieldoriginid: number; fieldname: string; fieldtype: number | string; iscustomfield: boolean; options?: string[] }> = [
-  { fieldoriginid: 8, fieldname: "City", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 9, fieldname: "State", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 10, fieldname: "Country", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 11, fieldname: "Facebook", fieldtype: "prospect_url", iscustomfield: false },
-  { fieldoriginid: 14, fieldname: "LinkedIn", fieldtype: "prospect_url", iscustomfield: false },
-  { fieldoriginid: 17, fieldname: "Twitter", fieldtype: "prospect_url", iscustomfield: false },
-  { fieldoriginid: 7, fieldname: "Company", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 18, fieldname: "Prospect Interests", fieldtype: "prospect_multi_line", iscustomfield: false },
-  { fieldoriginid: 1, fieldname: "Email", fieldtype: "email", iscustomfield: false },
-  { fieldoriginid: 2, fieldname: "Phone", fieldtype: "phone", iscustomfield: false },
-  { fieldoriginid: 3, fieldname: "First Name", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 4, fieldname: "Last Name", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 5, fieldname: "Title", fieldtype: 1, iscustomfield: false },
-  { fieldoriginid: 101, fieldname: "SDR First Touch Date", fieldtype: "prospect_date", iscustomfield: false },
-  { fieldoriginid: 102, fieldname: "Created Date", fieldtype: "prospect_date", iscustomfield: false },
-  { fieldoriginid: 103, fieldname: "Last Contacted Date", fieldtype: "prospect_date", iscustomfield: false },
-  { fieldoriginid: 104, fieldname: "Last Modified Date", fieldtype: "prospect_date", iscustomfield: false }
-];
+const getFieldType = (fieldname: string) => {
+  const name = fieldname.toLowerCase();
+  if (name === "email") return "email";
+  if (name === "phone") return "phone";
+  // Default to text (1) for others
+  return 1;
+};
+
+// Helper: Convert render-friendly fieldname to backend property key (legacy support)
+const getProspectPropertyKey = (fieldname: string) => {
+  return fieldname.toLowerCase().replace(/\s+/g, '');
+};
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "—";
@@ -194,13 +97,10 @@ const getDisplayValue = (field: { fieldtype: number | string }, rawValue: string
 
 
 const ProspectSection: React.FC<ProspectSectionProps> = ({
-  accessToken,
-  firstName,
-  lastName,
-  email,
+  prospect: initialProspect,
   onClose,
 }) => {
-  const [prospect, setProspect] = useState<any>(null);
+  const [prospect, setProspect] = useState<any>(initialProspect);
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientDomain, setRecipientDomain] = useState<string>("");
   const [recipientInitials, setRecipientInitials] = useState<string>("");
@@ -225,128 +125,118 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   };
 
   const displayFields = useMemo(() => {
-    // 1. Start with core/system fields
-    let combined = [...PROSPECT_FIELDS_CONFIG];
+    if (!prospect) return [];
 
-    // 2. Append custom fields from prospect data, if any
-    if (prospect && prospect.prospectFieldsList) {
-      const customFields = prospect.prospectFieldsList.filter((f: any) => f.iscustomfield);
-      combined = [...combined, ...customFields];
+    // 1. Build Predefined Fields (from ProspectSection2 logic)
+    const predefined: any[] = [];
+    for (const [propertyKey, propertyValue] of Object.entries(predefinedFieldsNameForPin)) {
+      if (!Number.isNaN(Number(propertyKey))) continue;
+      predefined.push({
+        fieldoriginid: propertyValue,
+        fieldorigin: 0,
+        fieldname: propertyKey,
+        iscustomfield: false,
+        fieldtype: getFieldType(propertyKey), // Augment with type for rendering
+      });
     }
 
-    // 3. Filter based on search query
-    if (!searchQuery) return combined;
+    // 2. Merge with prospectFieldsList
+    // Note: ProspectSection2 logic appends all list items. It does not dedup.
+    // We assume standard fields in prospectFieldsList might duplicate pinned ones?
+    // ProspectSection2 expects them to be distinct or just renders both.
+    // We will follow "Merge predefined fields + prospect.prospectFieldsList".
+    let combined = [
+      ...predefined,
+      ...(prospect.prospectFieldsList || []),
+    ];
 
-    return combined.filter((field) =>
-      field.fieldname.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // 3. Filter based on search query
+    if (searchQuery) {
+      combined = combined.filter((field) =>
+        field.fieldname && field.fieldname.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return combined;
   }, [prospect, searchQuery]);
 
   useEffect(() => {
-    const item = Office.context.mailbox.item;
-    if (item && item.to && item.to.length > 0) {
-      const firstRecipient = item.to[0];
-      const email = firstRecipient.emailAddress;
-      const displayName = firstRecipient.displayName;
+    setProspect(initialProspect);
+  }, [initialProspect]);
 
-      // Determine name: Use display name if available, else fallback to email username
-      let nameToDisplay = displayName;
-      if (!nameToDisplay) {
-        nameToDisplay = email.split("@")[0];
+
+  useEffect(() => {
+    if (prospect) {
+      const { firstname, lastname, emailid, email } = prospect;
+      const currentEmail = emailid || email || "";
+      const currentFirstName = firstname || "";
+      const currentLastName = lastname || "";
+
+      // Determine name
+      let nameToDisplay = [currentFirstName, currentLastName].filter(Boolean).join(" ");
+      if (!nameToDisplay && currentEmail) {
+        nameToDisplay = currentEmail.split("@")[0];
       }
-      setRecipientName(nameToDisplay);
+      setRecipientName(nameToDisplay || "Prospect");
 
       // Determine domain
-      const domainPart = email.split("@")[1] || "";
+      const domainPart = currentEmail.split("@")[1] || "";
       setRecipientDomain(domainPart);
 
       // Determine initials
       let initials = "";
-      if (displayName) {
-        const parts = displayName.split(" ").filter(Boolean);
-        if (parts.length > 0) {
-          initials = parts[0][0];
-          if (parts.length > 1) {
-            initials += parts[parts.length - 1][0];
-          }
-        }
-      }
-      if (!initials && email) {
-        initials = email[0];
-      }
+      if (currentFirstName) initials += currentFirstName[0];
+      if (currentLastName) initials += currentLastName[0];
+      if (!initials && currentEmail) initials = currentEmail[0];
+
       setRecipientInitials(initials.toUpperCase());
-    } else {
-      // Fallback if no recipient found (unlikely in read mode but good for safety)
-      const fallbackName = [firstName, lastName].filter(Boolean).join(" ") || "Prospect";
-      setRecipientName(fallbackName);
-      const fallbackDomain = email?.split("@")[1] || "";
-      setRecipientDomain(fallbackDomain);
-      const fallbackInitials =
-        (firstName?.[0] || "") + (lastName?.[0] || (!firstName && email ? email[0] : ""));
-      setRecipientInitials(fallbackInitials.toUpperCase());
     }
-
-    // console.log("email ::", email);
-
-    getProspectInfoByEmail(email);
-  }, [firstName, lastName, email]);
-
-  const getProspectInfoByEmail = async (email: string) => {
-    try {
-      const response = await getProspectByEmail(email);
-      console.log("Prospect Data Loaded:", response); // Debugging
-      if (response && (response as any).data) {
-        console.log("Prospect Fields Keys:", Object.keys((response as any).data));
-        console.log("Prospect Details:", (response as any).data.prospectDetails);
-        console.log("Prospect Fields List:", (response as any).data.prospectFieldsList);
-      }
-
-      if (response && (response as any).success) {
-        setProspect((response as any).data);
-      } else {
-        // Fallback or handle error
-        console.error("Failed to load prospect data", response);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  }, [prospect]);
 
   // Helper to resolve raw field value from prospect object (NOT pre-formatted)
-  const getFieldValue = (field: typeof PROSPECT_FIELDS_CONFIG[0]) => {
+  const getFieldValue = (field: { fieldoriginid: number; fieldname: string }) => {
     if (!prospect) return "";
 
-    // 1. Priority: Check prospectFieldsList for exact match or name match
+    // 1. Check direct prospect properties based on normalized name
+    // This handles the standard fields like FirstName, Email which are root props
+    const key = getProspectPropertyKey(field.fieldname);
+
+    if (key === "firstname") return prospect.firstname || "";
+    if (key === "lastname") return prospect.lastname || "";
+    if (key === "email") return prospect.emailid || prospect.email || "";
+    if (key === "phone") return prospect.flatphone || prospect.phone || "";
+    if (key === "designation" || key === "title") return prospect.designation || prospect.title || "";
+    if (key === "timezone") return prospect.timezone || "";
+    if (key === "prospectaccount" || key === "company") return prospect.prospectaccount || prospect.company || "";
+    if (key === "prospectstage") return prospect.prospectstage || prospect.stage || "";
+    if (key === "owner") return prospect.owner || "";
+
+    // 2. Check prospectFieldsList
     if (prospect.prospectFieldsList) {
+      // Try ID match first
       const fieldItem = prospect.prospectFieldsList.find((f: any) => f.fieldoriginid === field.fieldoriginid);
       if (fieldItem) {
         return fieldItem.fieldtext ?? fieldItem.value ?? "";
       }
 
-      const fieldItemByName = prospect.prospectFieldsList.find((f: any) => f.fieldname.toLowerCase() === field.fieldname.toLowerCase());
+      // Try Name match
+      const fieldItemByName = prospect.prospectFieldsList.find((f: any) =>
+        f.fieldname && f.fieldname.toLowerCase() === field.fieldname.toLowerCase()
+      );
       if (fieldItemByName) {
         return fieldItemByName.fieldtext ?? fieldItemByName.value ?? "";
       }
     }
 
-    // 2. Fallback: Direct property access for legacy/core fields
-    const key = field.fieldname.toLowerCase().replace(/\s+/g, '');
-
-    if (key === "company") return prospect.prospectaccount || prospect.company || "";
-    if (key === "email") return prospect.emailid || "";
-    if (key === "phone") return prospect.flatphone || "";
-    if (key === "title") return prospect.designation || prospect.title || "";
-    if (key === "firstname") return prospect.firstname || "";
-    if (key === "lastname") return prospect.lastname || "";
-    // Return RAW date strings — formatting happens at display time
+    // 3. Fallback checks for old hardcoded keys/dates
     if (key === "sdrfirsttouchdate") return prospect.sdrfirsttouchdate || prospect.firsttouchdate || prospect.prospectDetails?.firsttouchdate || "";
     if (key === "createddate") return prospect.createddate || "";
     if (key === "lastcontacteddate") return prospect.lastcontacteddate || prospect.lasttouchdate || prospect.prospectDetails?.lasttouchdate || "";
     if (key === "lastmodifieddate") return prospect.lastmodifieddate || "";
 
+    // General fallback
     if (prospect[key]) return prospect[key];
     if (prospect[field.fieldname]) return prospect[field.fieldname];
-    if (prospect[field.fieldname.toLowerCase()]) return prospect[field.fieldname.toLowerCase()];
 
     return "";
   };
@@ -480,12 +370,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     const updatedProspect = { ...prospect };
 
     // 2. Find the field config to know what we are updating
-    // Combined list logic from displayFields
-    let allFields = [...PROSPECT_FIELDS_CONFIG];
-    if (updatedProspect.prospectFieldsList) {
-      allFields = [...allFields, ...updatedProspect.prospectFieldsList.filter((f: any) => f.iscustomfield)];
-    }
-    const fieldConfig = allFields.find(f => f.fieldoriginid === fieldId);
+    const fieldConfig = displayFields.find(f => f.fieldoriginid === fieldId);
 
     if (!fieldConfig) {
       console.error("Field config not found for id:", fieldId);
@@ -511,23 +396,20 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     // Update root property for standard fields if needed (compatibility with legacy props)
     if (!fieldConfig.iscustomfield) {
       // Standard/System Field Mapping 
-      const key = fieldConfig.fieldname.toLowerCase().replace(/\s+/g, '');
+      const key = getProspectPropertyKey(fieldConfig.fieldname);
 
-      if (key === "company") updatedProspect.prospectaccount = newValue; // or company?
+      if (key === "firstname") updatedProspect.firstname = newValue;
+      else if (key === "lastname") updatedProspect.lastname = newValue;
       else if (key === "email") updatedProspect.emailid = newValue;
       else if (key === "phone") updatedProspect.flatphone = newValue;
-      else if (key === "title") updatedProspect.designation = newValue;
-      else if (key === "firstname") updatedProspect.firstname = newValue;
-      else if (key === "lastname") updatedProspect.lastname = newValue;
+      else if (key === "designation" || key === "title") updatedProspect.designation = newValue;
+      else if (key === "prospectaccount" || key === "company") updatedProspect.prospectaccount = newValue;
+      else if (key === "timezone") updatedProspect.timezone = newValue;
+      else if (key === "prospectstage") updatedProspect.prospectstage = newValue; // check API expectation for this?
+      else if (key === "owner") updatedProspect.owner = newValue;
       else {
-        // Fallback: try to match fieldname directly (e.g. City, State, Country might be direct or in custom list?)
-        // Note: City, State, Country are often direct properties in some APIs or part of address object.
-        // Based on ProspectData interface, we don't see city/state/country explicit properties yet in the interface I saw.
-        // If they are missing in interface but present in API, we can cast to any.
-        // Or they might be in prospectFieldsList even if iscustomfield is false?
-        // Let's assume standard prop update for now if it exists.
+        // Fallback: try to match fieldname directly
         (updatedProspect as any)[key] = newValue;
-
         // Also try strict fieldname
         (updatedProspect as any)[fieldConfig.fieldname] = newValue;
       }
@@ -625,6 +507,30 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           <Button
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
+            className="action-button"
+            onClick={() => { }}
+          />
+        </Tooltip>
+        <Tooltip content="Call" relationship="label">
+          <Button
+            appearance="subtle"
+            icon={<FontAwesomeIcon icon={faPhone} size="sm" className="icon-phone" />}
+            className="action-button"
+            onClick={() => { }}
+          />
+        </Tooltip>
+        <Tooltip content="Text Message" relationship="label">
+          <Button
+            appearance="subtle"
+            icon={<FontAwesomeIcon icon={faCommentDots} size="sm" className="icon-comment" />}
+            className="action-button"
+            onClick={() => { }}
+          />
+        </Tooltip>
+        <Tooltip content="WhatsApp" relationship="label">
+          <Button
+            appearance="subtle"
+            icon={<FontAwesomeIcon icon={faWhatsapp} size="sm" className="icon-whatsapp" />}
             className="action-button"
             onClick={() => { }}
           />
@@ -771,7 +677,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 const isEditing = editingFieldId === field.fieldoriginid;
 
                 // ── Phone field: custom renderer ──
-                if (field.fieldoriginid === 2) {
+                if (field.fieldoriginid === 4) {
                   return (
                     <div className="field-container" key={field.fieldoriginid}>
                       <Text className="field-label">Mobile Phone (Default)</Text>

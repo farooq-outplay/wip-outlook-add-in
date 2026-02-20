@@ -1,0 +1,110 @@
+.field-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.field-label {
+    font-size: var(--fontSizeBase200);
+    font-weight: var(--fontWeightSemibold);
+    color: var(--colorNeutralForeground1);
+}
+
+.field-value-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: text;
+    min-height: 20px;
+    outline: none;
+    transform: translateX(0);
+    transition: transform 0.3s ease, background-color 0.2s ease, border-color 0.2s ease;
+    will-change: transform;
+}
+
+.field-value-row:hover {
+    background-color: var(--colorNeutralBackground1Hover);
+    border: 1px solid var(--colorNeutralStroke1);
+    transform: translateX(6px);
+}
+
+.field-value-row:focus-visible {
+    background-color: var(--colorNeutralBackground1Hover);
+    border: 1px solid var(--colorBrandStroke1);
+    transform: translateX(6px);
+}
+
+.field-value-text {
+    font-size: var(--fontSizeBase300);
+    color: var(--colorNeutralForeground3);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.field-edit-icon {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.field-edit-icon.visible {
+    opacity: 1;
+}
+
+.field-edit-icon-wrapper {
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    background-color: transparent;
+    cursor: pointer;
+    color: #1B64FF;
+}
+
+.field-edit-icon-wrapper.visible {
+    opacity: 1;
+}
+
+.field-edit-icon-wrapper:hover,
+.field-edit-icon-wrapper:focus-visible {
+    background-color: #1B64FF;
+    color: #fff;
+}
+
+.field-edit-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    align-items: center;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    will-change: transform;
+}
+
+.field-edit-row:hover {
+    transform: translateX(2px);
+}
+
+.empty-placeholder {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.check-icon {
+    color: var(--colorBrandForeground1);
+}

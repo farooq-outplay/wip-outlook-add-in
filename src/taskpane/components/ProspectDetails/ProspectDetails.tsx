@@ -12,6 +12,7 @@ import "./ProspectDetails.css";
 import { ApiStatusCodes } from "../../../utility/types/apiResultTypes";
 import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 import ProspectSection from "../ProspectSection/ProspectSection";
+import { prospectDetailsObj } from "../../../utility/dummyData/dummyProspectData";
 
 const ProspectDetails: React.FC = () => {
   const { mode } = useAppContext();
@@ -61,6 +62,8 @@ const ProspectDetails: React.FC = () => {
       if (data.success) {
         setShowSomethingWentWrong(false);
         setProspect(data.data);
+        // console.log("prospectDetailsObj ::", prospectDetailsObj);
+        // setProspect(prospectDetailsObj);
       } else {
         setShowSomethingWentWrong(true);
       }
@@ -114,10 +117,7 @@ const ProspectDetails: React.FC = () => {
   }
   return (
     <ProspectSection
-      accessToken={accessToken || undefined}
-      firstName={prospect?.firstname}
-      lastName={prospect?.lastname}
-      email={prospect?.emailid || ""}
+      prospect={prospect}
     />
   );
 };
