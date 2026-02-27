@@ -11,32 +11,47 @@
     color: var(--colorNeutralForeground1);
 }
 
-.field-value-row {
+.field-display-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    will-change: transform;
+}
+
+.field-container:hover .field-display-row,
+.field-display-row:focus-within {
+    transform: translateX(6px);
+}
+
+.field-value-box {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    flex: 1;
     padding: 4px 8px;
     border-radius: 4px;
     border: 1px solid transparent;
     cursor: text;
     min-height: 20px;
     outline: none;
-    transform: translateX(0);
-    transition: transform 0.3s ease, background-color 0.2s ease, border-color 0.2s ease;
-    will-change: transform;
+    min-width: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.field-value-row:hover {
+.field-container:hover .field-value-box,
+.field-display-row:focus-within .field-value-box {
     background-color: var(--colorNeutralBackground1Hover);
     border: 1px solid var(--colorNeutralStroke1);
-    transform: translateX(6px);
 }
 
-.field-value-row:focus-visible {
+.field-value-box:focus-visible {
     background-color: var(--colorNeutralBackground1Hover);
     border: 1px solid var(--colorBrandStroke1);
-    transform: translateX(6px);
 }
 
 .field-value-text {
@@ -63,17 +78,21 @@
 
 .field-edit-icon-wrapper {
     opacity: 0;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 5px;
+    width: 30px;
+    border-radius: 4px;
     background-color: transparent;
     cursor: pointer;
     color: #1B64FF;
+}
+
+.field-container:hover .field-edit-icon-wrapper,
+.field-display-row:focus-within .field-edit-icon-wrapper {
+    background-color: var(--colorNeutralBackground1Hover);
 }
 
 .field-edit-icon-wrapper.visible {
@@ -82,8 +101,8 @@
 
 .field-edit-icon-wrapper:hover,
 .field-edit-icon-wrapper:focus-visible {
-    background-color: #1B64FF;
-    color: #fff;
+    background-color: #1B64FF !important;
+    color: #fff !important;
 }
 
 .field-edit-row {

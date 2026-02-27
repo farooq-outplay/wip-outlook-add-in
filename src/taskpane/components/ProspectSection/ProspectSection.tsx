@@ -24,7 +24,7 @@ import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
-import { saveProspect } from "../../../utility/api/prospectService";
+import { updateProspect } from "../../../utility/api/prospectService";
 import InlineEditField from "../InlineEditField/InlineEditField";
 
 interface ProspectSectionProps {
@@ -117,7 +117,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [showCustomFields, setShowCustomFields] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   const handleSearchClear = () => {
     setSearchQuery("");
@@ -127,27 +127,34 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const displayFields = useMemo(() => {
     if (!prospect) return [];
 
-    // 1. Build Predefined Fields (from ProspectSection2 logic)
+    const allFields = prospect.prospectFieldsList || [];
+
+    // 1. Build Predefined Fields, reusing original field objects when available
     const predefined: any[] = [];
     for (const [propertyKey, propertyValue] of Object.entries(predefinedFieldsNameForPin)) {
       if (!Number.isNaN(Number(propertyKey))) continue;
-      predefined.push({
-        fieldoriginid: propertyValue,
-        fieldorigin: 0,
-        fieldname: propertyKey,
-        iscustomfield: false,
-        fieldtype: getFieldType(propertyKey), // Augment with type for rendering
-      });
+
+      let originalField = allFields.find((f: any) => f.fieldoriginid === propertyValue && f.iscustomfield === false);
+      if (originalField) {
+        predefined.push({ ...originalField });
+      } else {
+        predefined.push({
+          fieldoriginid: propertyValue,
+          fieldorigin: 0,
+          fieldname: propertyKey,
+          iscustomfield: false,
+          fieldtype: getFieldType(propertyKey),
+        });
+      }
     }
 
-    // 2. Merge with prospectFieldsList
-    // Note: ProspectSection2 logic appends all list items. It does not dedup.
-    // We assume standard fields in prospectFieldsList might duplicate pinned ones?
-    // ProspectSection2 expects them to be distinct or just renders both.
-    // We will follow "Merge predefined fields + prospect.prospectFieldsList".
+    // 2. Merge with remaining prospectFieldsList
+    const predefinedIds = predefined.map(f => f.fieldoriginid);
+    const remainingFields = allFields.filter((f: any) => !predefinedIds.includes(f.fieldoriginid));
+
     let combined = [
       ...predefined,
-      ...(prospect.prospectFieldsList || []),
+      ...remainingFields,
     ];
 
     // 3. Filter based on search query
@@ -378,7 +385,34 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       return;
     }
 
-    // 3. Update the property on updatedProspect
+    const finalFieldOrigin = fieldConfig.fieldorigin ?? (fieldConfig.iscustomfield ? 2 : 1);
+    const finalFieldType = fieldConfig.fieldtype ?? 1;
+
+    if (finalFieldOrigin === null || finalFieldOrigin === undefined) {
+      throw new Error("Validation Error: fieldorigin is null or undefined");
+    }
+    if (finalFieldType === null || finalFieldType === undefined) {
+      throw new Error("Validation Error: fieldtype is null or undefined");
+    }
+    if (fieldConfig.fieldoriginid === null || fieldConfig.fieldoriginid === undefined) {
+      throw new Error("Validation Error: fieldoriginid is null or undefined");
+    }
+
+    const payload: any = {
+      prospectid: prospect.prospectid,
+      fieldorigin: finalFieldOrigin,
+      fieldoriginid: fieldConfig.fieldoriginid,
+      fieldtype: finalFieldType,
+      value: newValue,
+      alternatename: null,
+      extravalue: null,
+      ianatimezone: null,
+      timezone: null
+    };
+
+    console.log("updateProspect payload:", payload);
+
+    // 3. Keep optimistic local state update logic unchanged
 
     // Always try to update in prospectFieldsList if the field exists there (handles both custom and system fields in the list)
     if (updatedProspect.prospectFieldsList) {
@@ -421,8 +455,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       setProspect(updatedProspect);
       setEditingFieldId(null);
 
-      // const { saveProspect } = require("../../../utility/api/prospectService"); // Inline import to avoid circular dep if any, or just convenience
-      await saveProspect(updatedProspect);
+      // const { updateProspect } = require("../../../utility/api/prospectService"); // Inline import to avoid circular dep if any, or just convenience
+      await updateProspect(payload);
     } catch (error) {
       console.error("Failed to save prospect:", error);
       // Revert? For now just log.
@@ -565,7 +599,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       {/* Social media icons row */}
       <div className="social-row">
         {isSearchOpen ? (
-          <div className="search-input-container" style={{ marginLeft: 0 }}>
+          <div className="search-input-container search-input-container-no-margin">
             <Input
               autoFocus
               value={searchQuery}
@@ -693,6 +727,34 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                 // Trigger save with the updated value
                                 const doSave = async () => {
                                   const updatedProspect = { ...prospect };
+
+                                  const finalFieldOrigin = field.fieldorigin ?? (field.iscustomfield ? 2 : 1);
+                                  const finalFieldType = field.fieldtype ?? 1;
+
+                                  if (finalFieldOrigin === null || finalFieldOrigin === undefined) {
+                                    throw new Error("Validation Error: fieldorigin is null or undefined");
+                                  }
+                                  if (finalFieldType === null || finalFieldType === undefined) {
+                                    throw new Error("Validation Error: fieldtype is null or undefined");
+                                  }
+                                  if (field.fieldoriginid === null || field.fieldoriginid === undefined) {
+                                    throw new Error("Validation Error: fieldoriginid is null or undefined");
+                                  }
+
+                                  const payload: any = {
+                                    prospectid: prospect.prospectid,
+                                    fieldorigin: finalFieldOrigin,
+                                    fieldoriginid: field.fieldoriginid,
+                                    fieldtype: finalFieldType,
+                                    value: fullPhone,
+                                    alternatename: null,
+                                    extravalue: null,
+                                    ianatimezone: null,
+                                    timezone: null
+                                  };
+
+                                  console.log("updateProspect payload:", payload);
+
                                   if (updatedProspect.prospectFieldsList) {
                                     const idx = updatedProspect.prospectFieldsList.findIndex(
                                       (f: any) => f.fieldoriginid === field.fieldoriginid
@@ -709,10 +771,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                     }
                                   }
                                   updatedProspect.flatphone = fullPhone;
+                                  payload.flatphone = fullPhone;
                                   try {
                                     setProspect(updatedProspect);
                                     setEditingFieldId(null);
-                                    await saveProspect(updatedProspect);
+                                    await updateProspect(payload);
                                   } catch (error) {
                                     console.error("Failed to save phone:", error);
                                   }
@@ -761,13 +824,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               })}
 
             {/* Show More Options Button (Only if no search query AND collapsed) */}
-            {!searchQuery && !showCustomFields && prospect?.prospectFieldsList?.some((f: any) => f.iscustomfield) && (
-              <div style={{ padding: "8px 0" }}>
+            {!searchQuery && !showMoreOptions && (
+              <div className="show-more-options-container">
                 <Button
                   appearance="subtle"
-                  onClick={() => setShowCustomFields(true)}
+                  onClick={() => setShowMoreOptions(true)}
                   className="show-more-button"
-                  style={{ paddingLeft: 0, fontWeight: "normal", color: "var(--colorBrandForeground1)" }}
                 >
                   Show More Options
                 </Button>
@@ -775,7 +837,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             )}
 
             {/* Custom Fields (Visible if toggled ON or if Finding via Search) */}
-            {(showCustomFields || searchQuery) && (
+            {(showMoreOptions || searchQuery) && (
               <>
                 {displayFields
                   .filter((field) => field.iscustomfield)
@@ -801,14 +863,34 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                     );
                   })}
 
+                {/* Default System Fields */}
+                <div className="system-fields-section">
+                  {[
+                    { label: "SDR First Touch Date", value: prospect?.sdrfirsttouchdate || prospect?.firsttouchdate || prospect?.prospectDetails?.firsttouchdate },
+                    { label: "Created Date", value: prospect?.createddate },
+                    { label: "Last Contacted Date", value: prospect?.lastcontacteddate || prospect?.lasttouchdate || prospect?.prospectDetails?.lasttouchdate },
+                    { label: "Last Modified Date", value: prospect?.lastmodifieddate },
+                  ].map((sysField) => (
+                    <div className="field-container" key={sysField.label}>
+                      <Text className="field-label">{sysField.label}</Text>
+                      <div className="field-display-row">
+                        <div className="field-value-box">
+                          <span className="field-value-text">
+                            {formatDate(sysField.value)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
                 {/* Show Less Options Button (Only if no search query AND expanded) */}
-                {!searchQuery && showCustomFields && (
-                  <div style={{ padding: "8px 0" }}>
+                {!searchQuery && showMoreOptions && (
+                  <div className="show-more-options-container">
                     <Button
                       appearance="subtle"
-                      onClick={() => setShowCustomFields(false)}
+                      onClick={() => setShowMoreOptions(false)}
                       className="show-more-button"
-                      style={{ paddingLeft: 0, fontWeight: "normal", color: "var(--colorBrandForeground1)" }}
                     >
                       Show Less Options
                     </Button>

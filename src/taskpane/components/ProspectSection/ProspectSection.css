@@ -5,15 +5,14 @@
   background-color: var(--colorNeutralBackground1);
   cursor: default;
   user-select: none;
-  height: 92vh;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
   justify-content: flex-start;
 }
 
 .scrollable-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: visible;
   min-height: 0;
   padding-right: 4px;
 }
@@ -431,4 +430,18 @@
 
 .search-icon {
   color: var(--colorNeutralForeground3);
+}
+
+.search-input-container-no-margin {
+  margin-left: 0;
+}
+
+.show-more-options-container {
+  padding: 8px 0;
+}
+
+.show-more-button {
+  padding-left: 0;
+  font-weight: normal;
+  color: var(--colorBrandForeground1);
 }

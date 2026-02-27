@@ -83,24 +83,32 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                     />
                 </div>
             ) : (
-                <div
-                    className="field-value-row"
-                    onClick={onEdit}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
+                <div className="field-display-row">
+                    <div
+                        className="field-value-box"
+                        onClick={onEdit}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                onEdit();
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                    >
+                        <span className="field-value-text">
+                            {value || <span className="empty-placeholder">Empty</span>}
+                        </span>
+                    </div>
+                    <div
+                        className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
                             onEdit();
-                        }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                >
-                    <span className="field-value-text">
-                        {value || <span className="empty-placeholder">Empty</span>}
-                    </span>
-                    <span className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}>
-                        <FontAwesomeIcon icon={faPencil} style={{ color: "currentColor", fontSize: "10px" }} />
-                    </span>
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faPencil} style={{ color: "currentColor", fontSize: "12px" }} />
+                    </div>
                 </div>
             )}
         </div>

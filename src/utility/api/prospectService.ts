@@ -11,6 +11,13 @@ export const getProspectByEmail = (email: string | number): Promise<ProspectResp
   );
 };
 
+export const updateProspect = (payload: any): Promise<any> => {
+  return mobileApiClient<ApiResult<ProspectResponse>>(`/api/v1/cextprospect/updateprospect`, {
+    method: "PUT",
+    body: payload,
+  });
+};
+
 export const saveProspect = (payload: any): Promise<any> => {
   return mobileApiClient<ApiResult<ProspectResponse>>(`/api/v1/cextprospect/saveprospect`, {
     method: "POST",

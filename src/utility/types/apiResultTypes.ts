@@ -3,7 +3,7 @@ export type ApiResult<T> =
   | { success: false; status: number; error: string };
 
 export type ApiOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: any;
   headers?: Record<string, string>;
 };
