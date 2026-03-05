@@ -17,11 +17,12 @@ import { Pause20Regular, CheckmarkCircle20Regular, Prohibited20Regular, Delete20
 import "./Dialog.css";
 
 import { getSequences, Sequence } from "../../utility/api/sequenceService";
+import { getSenders, Sender } from "../../utility/api/senderService";
+import { getAuthSession } from "../../utility/authSession";
 
 const Dialog: React.FC = () => {
   // Mock data
   // const sequences = ["Outbound Sequence 1", "Follow-up Campaign", "Nurture Track"];
-  const senders = ["deeksha.t@outplayhq.com (Default)", "sales@outplayhq.com"];
   const opportunities = ["Most recently updated open", "New Deal 2024", "Main Account Expansion"];
   const dispositions = ["Connected", "Left Voicemail", "Busy", "Wrong Number"];
 
@@ -31,7 +32,9 @@ const Dialog: React.FC = () => {
   const [sequenceError, setSequenceError] = useState<string | null>(null);
 
   const [selectedSequence, setSelectedSequence] = useState<string>("");
-  const [selectedSender, setSelectedSender] = useState<string>(senders[0]);
+  const [senders, setSenders] = useState<Sender[]>([]);
+  const [isLoadingSenders, setIsLoadingSenders] = useState<boolean>(false);
+  const [selectedSender, setSelectedSender] = useState<string>("");
   const [selectedOpportunity, setSelectedOpportunity] = useState<string>(opportunities[0]);
   const [callNotes, setCallNotes] = useState<string>("");
   const [callDisposition, setCallDisposition] = useState<string>("Select");
@@ -61,6 +64,30 @@ const Dialog: React.FC = () => {
           setSequenceError("An error occurred while fetching sequences");
           setIsLoadingSequences(false);
         });
+
+      // Fetch senders
+      setIsLoadingSenders(true);
+      const authSession = getAuthSession();
+      const userId = authSession?.userId || authSession?.email || Office.context.mailbox?.userProfile?.emailAddress;
+
+      if (userId) {
+        getSenders(userId)
+          .then((result) => {
+            if (result.success && result.data) {
+              setSenders(result.data);
+              const defaultSender = result.data.find(s => s.isDefault);
+              if (defaultSender) {
+                setSelectedSender(defaultSender.email);
+              }
+            }
+            setIsLoadingSenders(false);
+          })
+          .catch(() => {
+            setIsLoadingSenders(false);
+          });
+      } else {
+        setIsLoadingSenders(false);
+      }
     }
   }, []);
 
@@ -336,11 +363,13 @@ const Dialog: React.FC = () => {
             <Dropdown
               className="dropdown-full-width"
               value={selectedSender}
+              placeholder={isLoadingSenders ? "Loading..." : "Select sender"}
+              disabled={isLoadingSenders}
               onOptionSelect={(_e, data) => setSelectedSender(data.optionText || "")}
             >
               {senders.map((sender) => (
-                <Option key={sender} text={sender}>
-                  {sender}
+                <Option key={sender.id} text={sender.email}>
+                  {sender.email}{sender.isDefault ? " (Default)" : ""}
                 </Option>
               ))}
             </Dropdown>

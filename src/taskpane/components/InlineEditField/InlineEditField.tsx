@@ -13,6 +13,7 @@ export interface InlineEditFieldProps {
     onSave: () => void;
     onCancel?: () => void;
     editComponent: React.ReactNode;
+    overlayComponent?: React.ReactNode;
 }
 
 const InlineEditField: React.FC<InlineEditFieldProps> = ({
@@ -22,13 +23,14 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
     onEdit,
     onSave,
     editComponent,
+    overlayComponent,
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isFocusedWithin, setIsFocusedWithin] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const showIcon = isHovered || isFocusedWithin || isEditing;
+    const showIcon = isHovered || isFocusedWithin || isEditing || !!overlayComponent;
 
     const handleContainerBlur = useCallback(
         (e: React.FocusEvent<HTMLDivElement>) => {
@@ -102,12 +104,18 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                     </div>
                     <div
                         className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}
+                        style={overlayComponent ? { position: "relative" } : undefined}
                         onClick={(e) => {
+                            if (overlayComponent) {
+                                // If overlay intercepts, we do not call onEdit
+                                return;
+                            }
                             e.stopPropagation();
                             onEdit();
                         }}
                     >
                         <FontAwesomeIcon icon={faPencil} style={{ color: "currentColor", fontSize: "12px" }} />
+                        {overlayComponent}
                     </div>
                 </div>
             )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { Button, Text, Avatar, Link, Divider, Input, Tooltip, Textarea, Checkbox, Select } from "@fluentui/react-components";
+import { Button, Text, Avatar, Link, Divider, Input, Tooltip, Textarea, Checkbox, Select, Dropdown, Option } from "@fluentui/react-components";
 
 import {
   Clock20Regular,
@@ -8,6 +8,7 @@ import {
   Share20Regular,
   Building20Regular,
   Dismiss20Regular,
+  Edit20Regular,
 } from "@fluentui/react-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,6 +27,7 @@ import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
 import { updateProspect } from "../../../utility/api/prospectService";
 import InlineEditField from "../InlineEditField/InlineEditField";
+import TimezoneSelect, { ITimezone, ITimezoneOption, allTimezones } from "react-timezone-select";
 
 interface ProspectSectionProps {
   prospect: any;
@@ -110,6 +112,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const [editingFieldId, setEditingFieldId] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState<"info" | "activity" | "note">("info");
+
+  const [datePickersVisible, setDatePickersVisible] = useState<Record<string, boolean>>({});
 
   // Modal State
   const [isAddToSequenceModalOpen, setIsAddToSequenceModalOpen] = useState(false);
@@ -213,7 +217,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     if (key === "email") return prospect.emailid || prospect.email || "";
     if (key === "phone") return prospect.flatphone || prospect.phone || "";
     if (key === "designation" || key === "title") return prospect.designation || prospect.title || "";
-    if (key === "timezone") return prospect.timezone || "";
+    if (key === "timezone") return prospect.ianatimezone || "";
     if (key === "prospectaccount" || key === "company") return prospect.prospectaccount || prospect.company || "";
     if (key === "prospectstage") return prospect.prospectstage || prospect.stage || "";
     if (key === "owner") return prospect.owner || "";
@@ -267,11 +271,20 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           type="date"
           value={toDateInputValue(currentValue)}
           onChange={(_e: any, data: any) => onChange(data.value)}
+          className="input-full-width no-calendar-icon"
+          ref={(input) => input?.showPicker?.()}
         />
       );
     }
     if (ft === "prospect_date_time" || ft === 5) {
-      return <Input {...commonInputProps} type="datetime-local" />;
+      return (
+        <Input
+          {...commonInputProps}
+          type="datetime-local"
+          className="input-full-width no-calendar-icon"
+          ref={(input) => input?.showPicker?.()}
+        />
+      );
     }
 
     // ── Number (ft=2) ──
@@ -312,18 +325,33 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       ft === 6 ||
       ft === 14
     ) {
-      const options: string[] = field.options || field.fieldoptions || [];
+      // TODO: replace with real API data
+      const dummyDropdownOptions = [
+        { key: "option1", text: "Option 1" },
+        { key: "option2", text: "Option 2" },
+        { key: "option3", text: "Option 3" },
+        { key: "option4", text: "Option 4" },
+      ];
+
       return (
-        <Select
-          value={currentValue}
-          onChange={(_e: any, data: any) => onChange(data.value)}
+        <Dropdown
+          {...commonInputProps}
+          value={dummyDropdownOptions.find(opt => opt.key === currentValue)?.text || currentValue || ""}
+          selectedOptions={currentValue ? [currentValue] : []}
+          onOptionSelect={(_e: any, data: any) => {
+            if (data.optionValue) {
+              onChange(data.optionValue);
+            }
+          }}
+          onChange={undefined} // Prevent generic onChange from conflicting with Dropdown
           className="input-full-width field-select"
         >
-          <option value="">Select {field.fieldname}</option>
-          {options.map((opt: string) => (
-            <option key={opt} value={opt}>{opt}</option>
+          {dummyDropdownOptions.map((opt) => (
+            <Option key={opt.key} value={opt.key}>
+              {opt.text}
+            </Option>
           ))}
-        </Select>
+        </Dropdown>
       );
     }
 
@@ -352,6 +380,23 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       );
     }
 
+    // ── Timezone (fieldoriginid = 6) ──
+    if (field.fieldoriginid === 6) {
+      return (
+        <TimezoneSelect
+          value={prospect?.ianatimezone || ""}
+          onChange={(tz: ITimezoneOption) => onChange(tz.value)}
+          placeholder="Search timezone..."
+          labelStyle="original"
+          className="full-width"
+          menuPortalTarget={document.body}
+          styles={{
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          }}
+        />
+      );
+    }
+
     // ── Default: Text input (fieldtype 1 or prospect_text or unknown) ──
     return <Input {...commonInputProps} type="text" />;
   };
@@ -365,8 +410,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     setEditValues(prev => ({ ...prev, [fieldId]: newValue }));
   };
 
-  const handleSave = async (fieldId: number) => {
-    const newValue = editValues[fieldId];
+  const handleSave = async (fieldId: number, overrideValue?: string) => {
+    const newValue = overrideValue !== undefined ? overrideValue : editValues[fieldId];
     // If no change or undefined, just exit
     if (newValue === undefined) {
       setEditingFieldId(null);
@@ -438,7 +483,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       else if (key === "phone") updatedProspect.flatphone = newValue;
       else if (key === "designation" || key === "title") updatedProspect.designation = newValue;
       else if (key === "prospectaccount" || key === "company") updatedProspect.prospectaccount = newValue;
-      else if (key === "timezone") updatedProspect.timezone = newValue;
+      else if (key === "timezone") updatedProspect.ianatimezone = newValue;
       else if (key === "prospectstage") updatedProspect.prospectstage = newValue; // check API expectation for this?
       else if (key === "owner") updatedProspect.owner = newValue;
       else {
@@ -468,6 +513,17 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const fullName = recipientName;
   const domain = recipientDomain;
   const initials = recipientInitials;
+
+  // allTimezones value is a plain city-names string (e.g. "Kolkata").
+  // We build a richer label; if the key isn't in the map fall back to the
+  // raw IANA string so we always show something when data exists.
+  const rawIana = prospect?.ianatimezone || prospect?.timezone || "";
+  const cityLabel = rawIana ? (allTimezones as Record<string, string>)[rawIana] : undefined;
+  const timezoneLabel = rawIana
+    ? cityLabel
+      ? `${rawIana.replace(/_/g, " ")} (${cityLabel})`
+      : rawIana
+    : null;
 
   const openAddTaskDialog = () => {
     Office.context.ui.displayDialogAsync(
@@ -520,9 +576,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       )}
 
       {/* Timezone row */}
-      <div className="timezone-row">
+      <div className="timezone-row" style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <Clock20Regular />
-        <span>No Timezone</span>
+        <span style={{ color: prospect?.ianatimezone ? "inherit" : "#999" }}>
+          {timezoneLabel || "No Timezone"}
+        </span>
       </div>
 
       {/* Action icons row */}
@@ -803,6 +861,29 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                   );
                 }
 
+                // Helper for date overlay
+                const renderDateOverlay = () => {
+                  const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
+                  if (ft !== "prospect_date" && ft !== 3 && ft !== "prospect_date_time" && ft !== 5) return undefined;
+
+                  const isDateTime = ft === "prospect_date_time" || ft === 5;
+                  const type = isDateTime ? "datetime-local" : "date";
+                  const val = isDateTime ? currentValue : toDateInputValue(String(currentValue));
+
+                  return (
+                    <input
+                      type={type}
+                      className="invisible-date-input"
+                      value={val || ""}
+                      onChange={(e) => {
+                        handleSave(field.fieldoriginid, e.target.value);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      title={`Edit ${field.fieldname}`}
+                    />
+                  );
+                };
+
                 // ── All other system fields: generic InlineEditField ──
                 return (
                   <InlineEditField
@@ -812,6 +893,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                     isEditing={isEditing}
                     onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                     onSave={() => handleSave(field.fieldoriginid)}
+                    overlayComponent={renderDateOverlay()}
                     editComponent={
                       renderFieldInput(
                         field,
@@ -844,6 +926,29 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                   .map((field) => {
                     const currentValue = getFieldValue(field);
                     const isEditing = editingFieldId === field.fieldoriginid;
+                    // Helper for date overlay
+                    const renderDateOverlay = () => {
+                      const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
+                      if (ft !== "prospect_date" && ft !== 3 && ft !== "prospect_date_time" && ft !== 5) return undefined;
+
+                      const isDateTime = ft === "prospect_date_time" || ft === 5;
+                      const type = isDateTime ? "datetime-local" : "date";
+                      const val = isDateTime ? currentValue : toDateInputValue(String(currentValue));
+
+                      return (
+                        <input
+                          type={type}
+                          className="invisible-date-input"
+                          value={val || ""}
+                          onChange={(e) => {
+                            handleSave(field.fieldoriginid, e.target.value);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          title={`Edit ${field.fieldname}`}
+                        />
+                      );
+                    };
+
                     return (
                       <InlineEditField
                         key={field.fieldoriginid}
@@ -852,6 +957,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                         isEditing={isEditing}
                         onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                         onSave={() => handleSave(field.fieldoriginid)}
+                        overlayComponent={renderDateOverlay()}
                         editComponent={
                           renderFieldInput(
                             field,
