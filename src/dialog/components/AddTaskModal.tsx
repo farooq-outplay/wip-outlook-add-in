@@ -1,3 +1,4 @@
+/// <reference types="office-js" />
 import React, { useState } from "react";
 import {
   Button,
@@ -21,39 +22,99 @@ import {
 import { faTwitter, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import "./AddTaskModal.css";
 
+import { createTask } from "../../utility/api/taskService";
+import { getAuthSession } from "../../utility/authSession";
+
+type TaskType = "email" | "call" | "linkedin" | "twitter" | "general" | "sms" | "whatsapp";
+
+// Maps UI task type string to API actiontype number
+const TASK_TYPE_TO_ACTIONTYPE: Record<TaskType, number> = {
+  email: 1,
+  call: 2,
+  linkedin: 3,
+  twitter: 4,
+  general: 5,
+  sms: 6,
+  whatsapp: 7,
+};
+
+// Maps UI priority label to API priority string
+const PRIORITY_LABEL_TO_VALUE: Record<string, string> = {
+  High: "1",
+  Medium: "2",
+  Low: "3",
+};
+
 const AddTaskModal: React.FC = () => {
   // State
   const [opportunity, setOpportunity] = useState("No Opportunity");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("2026-01-08");
-  const [time, setTime] = useState("11:25 AM");
+  const [time, setTime] = useState("11:25");
   const [assignTo, setAssignTo] = useState("Outplaytest22");
   const [priority, setPriority] = useState("High");
-  const [taskType, setTaskType] = useState<"email" | "call" | "linkedin" | "twitter" | "general" | "sms" | "whatsapp">("email");
+  const [taskType, setTaskType] = useState<TaskType>("email");
   const [actionParam, setActionParam] = useState("View Profile");
   const [taskName, setTaskName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Handlers
   const handleClose = () => {
     Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setError(null);
+
+    // 1. Get prospectid from URL
+    const prospectId = Number(new URLSearchParams(window.location.search).get("prospectid"));
+
+    if (!prospectId || isNaN(prospectId)) {
+      setError("Invalid prospect. Please close and reopen the task dialog.");
+      return;
+    }
+
+    // 2. Get current user ID from auth session
+    const authSession = getAuthSession();
+    const userId = authSession?.userId;
+
+    if (!userId) {
+      setError("Unable to determine current user. Please log in again.");
+      return;
+    }
+
+    // 3. Combine date + time into ISO string: "YYYY-MM-DDTHH:MM:00"
+    const taskscheduleddate = `${date}T${time}:00`;
+
+    // 4. Build payload
     const payload = {
-      status: "saveTask",
-      data: {
-        taskType,
-        opportunity,
-        description,
-        date,
-        time,
-        assignTo,
-        priority,
-        ...((taskType === "linkedin" || taskType === "twitter") && { actionParam }),
-        ...(taskType === "general" && { taskName }),
-      },
+      actiontype: TASK_TYPE_TO_ACTIONTYPE[taskType],
+      actionparameters: (taskType === "linkedin" || taskType === "twitter") ? actionParam : "",
+      userid: userId,
+      priority: PRIORITY_LABEL_TO_VALUE[priority] ?? "1",
+      tasknotes: description,
+      taskscheduleddate,
+      opportunityid: opportunity === "No Opportunity" ? null : null, // TODO: use real opportunity ID from API
     };
-    Office.context.ui.messageParent(JSON.stringify(payload));
+
+    setIsSaving(true);
+
+    try {
+      const response = await createTask(prospectId, payload);
+
+      if (response.success) {
+        Office.context.ui.messageParent(
+          JSON.stringify({ status: "saveTask", data: response.data })
+        );
+      } else {
+        setError(response.error || "Failed to create task. Please try again.");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -76,7 +137,6 @@ const AddTaskModal: React.FC = () => {
                         ? "Create a WhatsApp Task"
                         : "Create a General Task"}
           </div>
-
         </div>
 
         {/* Icon Toolbar */}
@@ -224,7 +284,7 @@ const AddTaskModal: React.FC = () => {
             <div className="col-flex">
               <Label className="field-label">Time</Label>
               <Input
-                type="text" // Using text for verify layout, ideally time picker
+                type="time"
                 value={time}
                 contentAfter={<Clock24Regular style={{ color: "var(--colorNeutralForeground3)" }} />}
                 className="input-control"
@@ -259,15 +319,22 @@ const AddTaskModal: React.FC = () => {
               </Dropdown>
             </div>
           </div>
+
+          {/* Inline error */}
+          {error && (
+            <div style={{ color: "red", fontSize: "12px", marginBottom: "8px" }}>
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="task-footer">
-          <Button appearance="transparent" className="cancel-button" onClick={handleClose}>
+          <Button appearance="transparent" className="cancel-button" onClick={handleClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button appearance="primary" className="save-button" onClick={handleSave}>
-            Save
+          <Button appearance="primary" className="save-button" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>

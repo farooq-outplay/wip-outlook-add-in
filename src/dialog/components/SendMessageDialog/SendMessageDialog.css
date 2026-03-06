@@ -1,0 +1,236 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    /* Prevent native Office Dialog scrollbars */
+}
+
+/* ── Modal Container ── */
+/* When rendered in Office.context.ui.displayDialogAsync, the iframe itself is the "modal" window. */
+/* We just need to fill the root area cleanly. */
+.sms-root {
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--fontFamilyBase, "Segoe UI", sans-serif);
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* ── Header ── */
+.sms-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px 20px;
+}
+
+.sms-modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.sms-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #6b7280;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.sms-modal-close:hover {
+    color: #111827;
+}
+
+/* ── Body ── */
+.sms-modal-body {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ── Form Group ── */
+.sms-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sms-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* ── Prospects Field ── */
+.sms-prospects-field {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 10px;
+    min-height: 36px;
+    gap: 6px;
+    background: #ffffff;
+}
+
+.sms-prospects-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+    align-items: center;
+}
+
+.sms-prospects-placeholder {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* ── Chip / Tag ── */
+.sms-prospect-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 2px 8px 2px 8px;
+    font-size: 13px;
+    color: #1e40af;
+}
+
+.sms-chip-remove {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.sms-chip-remove:hover {
+    color: #1f2937;
+}
+
+/* Clear all button outside chips but inside field */
+.sms-prospects-clear {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.sms-prospects-clear:hover {
+    color: #374151;
+}
+
+/* ── Send From ── */
+.sms-send-from {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px 12px;
+    min-height: 36px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.sms-send-from-icon {
+    font-size: 14px;
+    color: #ef4444;
+    transform: rotate(-45deg);
+    display: inline-block;
+}
+
+.sms-send-from-number {
+    flex: 1;
+    font-size: 13px;
+    color: #374151;
+}
+
+.sms-send-from-chevron {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* ── Body Textarea ── */
+.sms-body-textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #374151;
+    resize: vertical;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    min-height: 120px;
+}
+
+.sms-body-textarea::placeholder {
+    color: #9ca3af;
+}
+
+.sms-body-textarea:focus {
+    border-color: #2563eb;
+}
+
+/* ── Footer ── */
+.sms-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+}
+
+.sms-btn-cancel {
+    background: none;
+    border: none;
+    font-size: 13px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.sms-btn-cancel:hover {
+    color: #111827;
+    background: #f3f4f6;
+}
+
+.sms-btn-send {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sms-btn-send:hover {
+    background: #1d4ed8;
+}

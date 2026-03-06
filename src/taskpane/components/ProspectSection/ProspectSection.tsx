@@ -526,9 +526,16 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     : null;
 
   const openAddTaskDialog = () => {
+    if (!prospect?.prospectid) {
+      console.error("Cannot open task dialog: prospectid is missing");
+      return;
+    }
+
+    console.log("Opening task dialog for prospectid:", prospect.prospectid);
+
     Office.context.ui.displayDialogAsync(
-      window.location.origin + "/dialog.html?dialog=addTask",
-      { height: 60, width: 40, displayInIframe: true },
+      window.location.origin + "/dialog.html?dialog=addTask&prospectid=" + prospect.prospectid,
+      { height: 85, width: 40, displayInIframe: true },
       (asyncResult) => {
         if (asyncResult.status === Office.AsyncResultStatus.Failed) {
           console.error("Dialog failed to open:", asyncResult.error.message);
@@ -540,6 +547,52 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               dialog.close();
             } else if (message.status === "saveTask") {
               console.log("Task Saved from Dialog:", message.data);
+              dialog.close();
+            }
+          });
+        }
+      }
+    );
+  };
+
+  const openSendMessageDialog = () => {
+    const prospectName = prospect ? [prospect.firstname, prospect.lastname].filter(Boolean).join(" ") : "";
+    const url = new URL("/dialog.html", window.location.origin);
+    url.searchParams.set("dialog", "sendMessage");
+    if (prospectName) {
+      url.searchParams.set("prospectName", prospectName);
+    }
+
+    Office.context.ui.displayDialogAsync(
+      url.toString(),
+      { height: 70, width: 35, displayInIframe: true },
+      (asyncResult) => {
+        if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+          console.error("Failed to open dialog: " + asyncResult.error.message);
+        } else {
+          const dialog = asyncResult.value;
+
+          // Handle messages from the dialog (e.g. submit or close button)
+          dialog.addEventHandler(Office.EventType.DialogMessageReceived, (arg: any) => {
+            let message;
+            try {
+              message = JSON.parse(arg.message);
+            } catch (e) {
+              message = arg.message;
+            }
+
+            if (message.status === "closed") {
+              dialog.close();
+            } else if (message.status === "submitted") {
+              console.log("Sending SMS:", message.data);
+              dialog.close();
+            }
+          });
+
+          // Handle external dialog close (e.g. user clicks X)
+          dialog.addEventHandler(Office.EventType.DialogEventReceived, (arg: any) => {
+            // 12006: DialogClosedByUser
+            if (arg.error === 12006) {
               dialog.close();
             }
           });
@@ -616,7 +669,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faCommentDots} size="sm" className="icon-comment" />}
             className="action-button"
-            onClick={() => { }}
+            onClick={openSendMessageDialog}
           />
         </Tooltip>
         <Tooltip content="WhatsApp" relationship="label">
@@ -624,7 +677,14 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faWhatsapp} size="sm" className="icon-whatsapp" />}
             className="action-button"
-            onClick={() => { }}
+            onClick={() => {
+              const phoneNumber = prospect?.flatphone || prospect?.phone || prospect?.mobile || "";
+              if (phoneNumber) {
+                const encodedPhone = encodeURIComponent(phoneNumber);
+                const whatsappUrl = `https://api.whatsapp.com/send/?phone=${encodedPhone}&text=&type=phone_number&app_absent=0`;
+                window.open(whatsappUrl, "_blank");
+              }
+            }}
           />
         </Tooltip>
         <Tooltip content="Add Task" relationship="label">
@@ -787,7 +847,10 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                   const updatedProspect = { ...prospect };
 
                                   const finalFieldOrigin = field.fieldorigin ?? (field.iscustomfield ? 2 : 1);
-                                  const finalFieldType = field.fieldtype ?? 1;
+                                  // Normalise fieldtype: the phone field is stored as the string "phone" by getFieldType().
+                                  // The API expects a numeric fieldtype, so coerce any non-numeric string to 1 (text).
+                                  const rawFieldType = field.fieldtype ?? 1;
+                                  const finalFieldType = typeof rawFieldType === "string" && isNaN(Number(rawFieldType)) ? 1 : rawFieldType;
 
                                   if (finalFieldOrigin === null || finalFieldOrigin === undefined) {
                                     throw new Error("Validation Error: fieldorigin is null or undefined");
@@ -829,7 +892,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                     }
                                   }
                                   updatedProspect.flatphone = fullPhone;
-                                  payload.flatphone = fullPhone;
                                   try {
                                     setProspect(updatedProspect);
                                     setEditingFieldId(null);
@@ -890,6 +952,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                     key={field.fieldoriginid}
                     label={field.fieldname}
                     value={getDisplayValue(field, String(currentValue))}
+                    copyValue={String(currentValue)}
                     isEditing={isEditing}
                     onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                     onSave={() => handleSave(field.fieldoriginid)}
@@ -954,6 +1017,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                         key={field.fieldoriginid}
                         label={field.fieldname}
                         value={getDisplayValue(field, String(currentValue))}
+                        copyValue={String(currentValue)}
                         isEditing={isEditing}
                         onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                         onSave={() => handleSave(field.fieldoriginid)}

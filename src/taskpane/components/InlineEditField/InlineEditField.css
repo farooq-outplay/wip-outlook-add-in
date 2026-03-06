@@ -105,6 +105,56 @@
     color: #fff !important;
 }
 
+/* Label row: label text on the left, copy FAB on the right */
+.field-label-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 20px;
+    padding-right: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Blue circular copy button (floating action button style) */
+.field-copy-fab {
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    /* Centers it perfectly above the 30px wide pencil button:
+       Pencil box is 30px, so 4px margin + 22px copy + 4px empty space aligns centers */
+    margin-right: 1px;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--colorNeutralForeground3, #616161);
+    cursor: pointer;
+    outline: none;
+}
+
+.field-container:hover .field-copy-fab,
+.field-container:focus-within .field-copy-fab {
+    opacity: 1;
+}
+
+.field-copy-fab.visible {
+    opacity: 1;
+}
+
+.field-copy-fab:hover,
+.field-copy-fab:focus-visible {
+    background-color: #1B64FF;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(27, 100, 255, 0.25);
+    transform: scale(1.08);
+}
+
 .field-edit-row {
     display: flex;
     flex-direction: row;
