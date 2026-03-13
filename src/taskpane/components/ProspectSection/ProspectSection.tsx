@@ -9,6 +9,7 @@ import {
   Building20Regular,
   Dismiss20Regular,
   Edit20Regular,
+  ChevronDown20Regular,
 } from "@fluentui/react-icons";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,7 +26,7 @@ import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
-import { updateProspect } from "../../../utility/api/prospectService";
+import { updateProspect, getProspectStages } from "../../../utility/api/prospectService";
 import InlineEditField from "../InlineEditField/InlineEditField";
 import TimezoneSelect, { ITimezone, ITimezoneOption, allTimezones } from "react-timezone-select";
 
@@ -87,6 +88,13 @@ const isDateFieldType = (fieldtype: number | string) => {
 /** Format a value for display (read mode) based on field type */
 const getDisplayValue = (field: { fieldtype: number | string }, rawValue: string) => {
   if (!rawValue) return "";
+
+  const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
+  if (ft === "prospect_date_time" || ft === 5) {
+    const date = new Date(rawValue);
+    return isNaN(date.getTime()) ? rawValue : date.toLocaleString();
+  }
+
   if (isDateFieldType(field.fieldtype)) {
     return formatDate(rawValue);
   }
@@ -114,6 +122,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const [activeTab, setActiveTab] = useState<"info" | "activity" | "note">("info");
 
   const [datePickersVisible, setDatePickersVisible] = useState<Record<string, boolean>>({});
+
+  // Stages State
+  const [stages, setStages] = useState<any[]>([]);
+  const [stageDropdownOpen, setStageDropdownOpen] = useState(false);
+  const stageButtonRef = useRef<HTMLButtonElement | null>(null);
+  const stageDropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Modal State
   const [isAddToSequenceModalOpen, setIsAddToSequenceModalOpen] = useState(false);
@@ -175,6 +189,76 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     setProspect(initialProspect);
   }, [initialProspect]);
 
+  useEffect(() => {
+    getProspectStages()
+      .then((res) => {
+        console.log("getProspectStages raw response:", res);
+        if (res && res.success && res.data) {
+          const list = Array.isArray(res.data) ? res.data : (res.data.stageList ?? res.data.stages ?? res.data.data ?? []);
+          setStages(list);
+        } else if (Array.isArray(res)) {
+          setStages(res);
+        } else {
+          console.warn("Unexpected stages shape:", res);
+        }
+      })
+      .catch((err) => console.error("Error fetching stages", err));
+  }, []);
+
+  const handleStageChange = useCallback(async (stage: any) => {
+    const stageId = stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid;
+    const stageName = stage.name ?? stage.prospectstage ?? stage.label;
+
+    if (!stageId || !stageName) {
+      console.warn("Invalid stage selected", stage);
+      return;
+    }
+
+    // Optimistic local update
+    const updatedProspect = { ...prospect, prospectstage: stageName, prospectstageid: stageId };
+    setProspect(updatedProspect);
+
+    try {
+      // Create stage payload exactly as expected by the backend format
+      const payload: any = {
+        prospectid: prospect.prospectid,
+        fieldorigin: 0,
+        fieldoriginid: 8,
+        value: String(stageId),
+      };
+
+      console.log("updateProspect stage payload:", payload);
+      const response = await updateProspect(payload);
+      console.log("updateProspect stage response:", response);
+
+      if (response && response.success === false) {
+        console.error("Stage update failed:", response.error);
+        setProspect(prospect); // revert
+      }
+    } catch (error) {
+      console.error("Failed to update prospect stage:", error);
+      setProspect(prospect); // Revert optimistic update
+    }
+  }, [prospect]);
+
+  // Close stage dropdown when clicking outside (exclude the portal list itself)
+  useEffect(() => {
+    if (!stageDropdownOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const insideButton = stageButtonRef.current?.contains(target);
+      const insideDropdown = stageDropdownRef.current?.contains(target);
+      if (!insideButton && !insideDropdown) {
+        setStageDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [stageDropdownOpen]);
+
+  const openStageDropdown = () => {
+    setStageDropdownOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     if (prospect) {
@@ -282,7 +366,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           {...commonInputProps}
           type="datetime-local"
           className="input-full-width no-calendar-icon"
-          ref={(input) => input?.showPicker?.()}
         />
       );
     }
@@ -562,6 +645,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     if (prospectName) {
       url.searchParams.set("prospectName", prospectName);
     }
+    if (prospect?.prospectid) {
+      url.searchParams.set("prospectid", prospect.prospectid);
+    }
 
     Office.context.ui.displayDialogAsync(
       url.toString(),
@@ -709,9 +795,82 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           Bounced
         </Button>
-        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
-          No Stage
-        </Button>
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <button
+            ref={stageButtonRef}
+            className="pill-button fui-Button fui-Button--secondary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              cursor: "pointer",
+              border: "1px solid var(--colorNeutralStroke1)",
+              borderRadius: 4,
+              padding: "0 8px",
+              height: 24,
+              fontSize: "var(--fontSizeBase200)",
+              background: "var(--colorNeutralBackground1)",
+              color: "var(--colorNeutralForeground1)",
+            }}
+            onClick={openStageDropdown}
+          >
+            {prospect?.prospectstage || "No Stage"}
+            <ChevronDown20Regular style={{ fontSize: 12, marginLeft: 2 }} />
+          </button>
+
+          {stageDropdownOpen && (
+            <div
+              ref={stageDropdownRef}
+              style={{
+                position: "absolute",
+                top: "calc(100% + 2px)",
+                left: 0,
+                width: 260,
+                zIndex: 9999,
+                background: "#fff",
+                border: "1px solid #d1d1d1",
+                borderRadius: 4,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                maxHeight: 260,
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              {stages.length === 0 ? (
+                <div style={{ padding: "8px 12px", color: "#888", fontSize: 12 }}>No stages available</div>
+              ) : (
+                stages.map((stage, idx) => {
+                  const stageId = stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid ?? idx;
+                  const stageName = stage.name ?? stage.prospectstage ?? stage.label ?? "Unknown";
+                  return (
+                    <div
+                      key={stageId}
+                      onMouseDown={(e) => {
+                        // Prevent the document mousedown from closing the dropdown
+                        e.stopPropagation();
+                        handleStageChange(stage);
+                        setStageDropdownOpen(false);
+                      }}
+                      style={{
+                        padding: "7px 16px",
+                        cursor: "pointer",
+                        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                        fontSize: 13,
+                        lineHeight: "18px",
+                        fontWeight: 400,
+                        color: "#333",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      {stageName}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Social media icons row */}

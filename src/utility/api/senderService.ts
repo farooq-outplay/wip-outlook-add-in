@@ -18,7 +18,7 @@ export interface RawSender {
 export const getSenders = async (userId: string | number): Promise<ApiResult<Sender[]>> => {
   try {
     const response = await mobileApiClient<RawSender[]>(
-      `/api/v1/cextmailbox/getuseraliasbyuserid?userid=9${userId}`,
+      `/api/v1/cextmailbox/getuseraliasbyuserid?userId=${userId}`,
       { method: "GET" }
     );
 

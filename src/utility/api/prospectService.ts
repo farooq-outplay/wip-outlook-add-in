@@ -24,3 +24,21 @@ export const saveProspect = (payload: any): Promise<any> => {
     body: payload,
   });
 };
+
+export const createBulkSms = async (payload: {
+  sendanyway: number;
+  body: string;
+  dialernumberid: number;
+  textprospects: { prospectid: number }[];
+}) => {
+  return mobileApiClient("/api/v1/cextprospect/createbulksms", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const getProspectStages = (): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/stages", {
+    method: "GET",
+  });
+};

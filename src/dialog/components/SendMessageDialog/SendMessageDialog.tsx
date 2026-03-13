@@ -1,53 +1,110 @@
 import React, { useState, useEffect } from "react";
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import {
+    FluentProvider,
+    webLightTheme,
+    Toaster,
+    useToastController,
+    Toast,
+    ToastTitle,
+    useId
+} from "@fluentui/react-components";
 import "./SendMessageDialog.css";
+import { createBulkSms } from "../../../utility/api/prospectService";
 
 const SendMessageDialog: React.FC = () => {
-    const [prospects, setProspects] = useState<string[]>([]);
-    const [body, setBody] = useState("");
+    const toasterId = useId("toaster");
+    const { dispatchToast } = useToastController(toasterId);
 
-    // Read the prospectName from the URL parameters when the dialog loads
+    const [prospects, setProspects] = useState<string[]>([]);
+    const [prospectId, setProspectId] = useState<number | null>(null);
+    const [body, setBody] = useState("");
+    const [selectedDialerId, setSelectedDialerId] = useState<number>(1);
+    const [isSending, setIsSending] = useState(false);
+
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const name = urlParams.get("prospectName");
         if (name && name.trim()) {
             setProspects([name.trim()]);
         }
+
+        const id = urlParams.get("prospectid");
+        if (id) {
+            setProspectId(Number(id));
+        }
     }, []);
 
-    // Send a "closed" status back to the parent taskpane to close the dialog
     const handleClose = () => {
         Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
     };
 
-    // Remove a prospect chip
+    const notify = (intent: "success" | "error", title: string) => {
+        dispatchToast(
+            <Toast>
+                <ToastTitle>{title}</ToastTitle>
+            </Toast>,
+            { intent }
+        );
+    };
+
     const removeProspect = (index: number) => {
         setProspects((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Send a "submitted" status with data back to the parent taskpane
-    const handleSend = () => {
+    const handleSend = async () => {
+        if (!body.trim()) {
+            notify("error", "Message text cannot be empty.");
+            return;
+        }
+
+        if (!prospectId) {
+            notify("error", "Prospect ID is missing.");
+            return;
+        }
+
+        setIsSending(true);
+
         const payload = {
-            status: "submitted",
-            data: { prospects, body }
+            sendanyway: 2,
+            body: body,
+            dialernumberid: selectedDialerId,
+            textprospects: [
+                {
+                    prospectid: prospectId
+                }
+            ]
         };
-        Office.context.ui.messageParent(JSON.stringify(payload));
+
+        try {
+            const response = await createBulkSms(payload);
+
+            if (response && response.success) {
+                notify("success", "Message sent successfully");
+                setTimeout(() => {
+                    handleClose();
+                }, 1000);
+            } else {
+                notify("error", "Failed to send message.");
+            }
+        } catch (error) {
+            notify("error", "An error occurred while sending the message.");
+        } finally {
+            setIsSending(false);
+        }
     };
 
     return (
         <FluentProvider theme={webLightTheme}>
+            <Toaster toasterId={toasterId} />
             <div className="sms-root">
-                {/* Header */}
                 <div className="sms-modal-header">
                     <h2 className="sms-modal-title" id="sms-modal-title">Send Message</h2>
-                    <button className="sms-modal-close" onClick={handleClose} aria-label="Close">
+                    <button className="sms-modal-close" onClick={handleClose} aria-label="Close" disabled={isSending}>
                         ×
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="sms-modal-body">
-                    {/* Prospects Field */}
                     <div className="sms-form-group">
                         <label className="sms-label">Prospects</label>
                         <div className="sms-prospects-field">
@@ -59,6 +116,7 @@ const SendMessageDialog: React.FC = () => {
                                             className="sms-chip-remove"
                                             onClick={() => removeProspect(idx)}
                                             aria-label={`Remove ${p}`}
+                                            disabled={isSending}
                                         >
                                             ×
                                         </button>
@@ -73,6 +131,7 @@ const SendMessageDialog: React.FC = () => {
                                     className="sms-prospects-clear"
                                     onClick={() => setProspects([])}
                                     aria-label="Clear all prospects"
+                                    disabled={isSending}
                                 >
                                     ×
                                 </button>
@@ -80,7 +139,6 @@ const SendMessageDialog: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Send From Field */}
                     <div className="sms-form-group">
                         <label className="sms-label">Send From</label>
                         <div className="sms-send-from">
@@ -90,7 +148,6 @@ const SendMessageDialog: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Body Field */}
                     <div className="sms-form-group">
                         <label className="sms-label">Body</label>
                         <textarea
@@ -99,17 +156,17 @@ const SendMessageDialog: React.FC = () => {
                             value={body}
                             onChange={(e) => setBody(e.target.value)}
                             rows={5}
+                            disabled={isSending}
                         />
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="sms-modal-footer">
-                    <button className="sms-btn-cancel" onClick={handleClose}>
+                    <button className="sms-btn-cancel" onClick={handleClose} disabled={isSending}>
                         Cancel
                     </button>
-                    <button className="sms-btn-send" onClick={handleSend}>
-                        Send
+                    <button className="sms-btn-send" onClick={handleSend} disabled={isSending}>
+                        {isSending ? "Sending..." : "Send"}
                     </button>
                 </div>
             </div>
