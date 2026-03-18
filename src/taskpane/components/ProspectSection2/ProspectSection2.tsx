@@ -219,7 +219,7 @@ const ProspectSection2: React.FC<ProspectSectionProps> = ({ prospect }) => {
 
         {activeTab === "activity" && (
           <div className="info-container">
-            <Text>No recent activity</Text>
+            <Text>Coming soon</Text>
           </div>
         )}
       </div>

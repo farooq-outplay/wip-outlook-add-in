@@ -11,10 +11,8 @@
 }
 
 .scrollable-content {
-  flex: 1;
-  overflow: visible;
-  min-height: 0;
-  padding-right: 4px;
+  height: 60vh;
+  overflow: hidden auto;
 }
 
 .close-button {
@@ -237,7 +235,10 @@
   min-height: 20px;
   outline: none;
   transform: translateX(0);
-  transition: transform 0.3s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.3s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   will-change: transform;
 }
 
@@ -277,7 +278,9 @@
 
 .field-edit-icon-wrapper {
   opacity: 0;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,7 +290,7 @@
   border-radius: 5px;
   background-color: transparent;
   cursor: pointer;
-  color: #1B64FF;
+  color: #1b64ff;
 }
 
 .field-edit-icon-wrapper.visible {
@@ -296,7 +299,7 @@
 
 .field-edit-icon-wrapper:hover,
 .field-edit-icon-wrapper:focus-visible {
-  background-color: #1B64FF;
+  background-color: #1b64ff;
   color: #fff;
 }
 
@@ -334,8 +337,6 @@
   align-items: center;
   padding: 4px 0;
 }
-
-
 
 /* Specific Icons Colors */
 .icon-paperplane {

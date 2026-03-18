@@ -1,5 +1,18 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { Button, Text, Avatar, Link, Divider, Input, Tooltip, Textarea, Checkbox, Select, Dropdown, Option } from "@fluentui/react-components";
+import {
+  Button,
+  Text,
+  Avatar,
+  Link,
+  Divider,
+  Input,
+  Tooltip,
+  Textarea,
+  Checkbox,
+  Select,
+  Dropdown,
+  Option,
+} from "@fluentui/react-components";
 
 import {
   Clock20Regular,
@@ -35,8 +48,6 @@ interface ProspectSectionProps {
   onClose?: () => void;
 }
 
-
-
 const predefinedFieldsNameForPin = {
   FirstName: 1,
   LastName: 2,
@@ -59,7 +70,7 @@ const getFieldType = (fieldname: string) => {
 
 // Helper: Convert render-friendly fieldname to backend property key (legacy support)
 const getProspectPropertyKey = (fieldname: string) => {
-  return fieldname.toLowerCase().replace(/\s+/g, '');
+  return fieldname.toLowerCase().replace(/\s+/g, "");
 };
 
 const formatDate = (dateString?: string) => {
@@ -100,11 +111,6 @@ const getDisplayValue = (field: { fieldtype: number | string }, rawValue: string
   }
   return rawValue;
 };
-
-
-
-
-
 
 const ProspectSection: React.FC<ProspectSectionProps> = ({
   prospect: initialProspect,
@@ -152,7 +158,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     for (const [propertyKey, propertyValue] of Object.entries(predefinedFieldsNameForPin)) {
       if (!Number.isNaN(Number(propertyKey))) continue;
 
-      let originalField = allFields.find((f: any) => f.fieldoriginid === propertyValue && f.iscustomfield === false);
+      let originalField = allFields.find(
+        (f: any) => f.fieldoriginid === propertyValue && f.iscustomfield === false
+      );
       if (originalField) {
         predefined.push({ ...originalField });
       } else {
@@ -167,18 +175,16 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     }
 
     // 2. Merge with remaining prospectFieldsList
-    const predefinedIds = predefined.map(f => f.fieldoriginid);
+    const predefinedIds = predefined.map((f) => f.fieldoriginid);
     const remainingFields = allFields.filter((f: any) => !predefinedIds.includes(f.fieldoriginid));
 
-    let combined = [
-      ...predefined,
-      ...remainingFields,
-    ];
+    let combined = [...predefined, ...remainingFields];
 
     // 3. Filter based on search query
     if (searchQuery) {
-      combined = combined.filter((field) =>
-        field.fieldname && field.fieldname.toLowerCase().includes(searchQuery.toLowerCase())
+      combined = combined.filter(
+        (field) =>
+          field.fieldname && field.fieldname.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -194,7 +200,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       .then((res) => {
         console.log("getProspectStages raw response:", res);
         if (res && res.success && res.data) {
-          const list = Array.isArray(res.data) ? res.data : (res.data.stageList ?? res.data.stages ?? res.data.data ?? []);
+          const list = Array.isArray(res.data)
+            ? res.data
+            : (res.data.stageList ?? res.data.stages ?? res.data.data ?? []);
           setStages(list);
         } else if (Array.isArray(res)) {
           setStages(res);
@@ -205,41 +213,44 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       .catch((err) => console.error("Error fetching stages", err));
   }, []);
 
-  const handleStageChange = useCallback(async (stage: any) => {
-    const stageId = stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid;
-    const stageName = stage.name ?? stage.prospectstage ?? stage.label;
+  const handleStageChange = useCallback(
+    async (stage: any) => {
+      const stageId = stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid;
+      const stageName = stage.name ?? stage.prospectstage ?? stage.label;
 
-    if (!stageId || !stageName) {
-      console.warn("Invalid stage selected", stage);
-      return;
-    }
-
-    // Optimistic local update
-    const updatedProspect = { ...prospect, prospectstage: stageName, prospectstageid: stageId };
-    setProspect(updatedProspect);
-
-    try {
-      // Create stage payload exactly as expected by the backend format
-      const payload: any = {
-        prospectid: prospect.prospectid,
-        fieldorigin: 0,
-        fieldoriginid: 8,
-        value: String(stageId),
-      };
-
-      console.log("updateProspect stage payload:", payload);
-      const response = await updateProspect(payload);
-      console.log("updateProspect stage response:", response);
-
-      if (response && response.success === false) {
-        console.error("Stage update failed:", response.error);
-        setProspect(prospect); // revert
+      if (!stageId || !stageName) {
+        console.warn("Invalid stage selected", stage);
+        return;
       }
-    } catch (error) {
-      console.error("Failed to update prospect stage:", error);
-      setProspect(prospect); // Revert optimistic update
-    }
-  }, [prospect]);
+
+      // Optimistic local update
+      const updatedProspect = { ...prospect, prospectstage: stageName, prospectstageid: stageId };
+      setProspect(updatedProspect);
+
+      try {
+        // Create stage payload exactly as expected by the backend format
+        const payload: any = {
+          prospectid: prospect.prospectid,
+          fieldorigin: 0,
+          fieldoriginid: 8,
+          value: String(stageId),
+        };
+
+        console.log("updateProspect stage payload:", payload);
+        const response = await updateProspect(payload);
+        console.log("updateProspect stage response:", response);
+
+        if (response && response.success === false) {
+          console.error("Stage update failed:", response.error);
+          setProspect(prospect); // revert
+        }
+      } catch (error) {
+        console.error("Failed to update prospect stage:", error);
+        setProspect(prospect); // Revert optimistic update
+      }
+    },
+    [prospect]
+  );
 
   // Close stage dropdown when clicking outside (exclude the portal list itself)
   useEffect(() => {
@@ -300,23 +311,27 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     if (key === "lastname") return prospect.lastname || "";
     if (key === "email") return prospect.emailid || prospect.email || "";
     if (key === "phone") return prospect.flatphone || prospect.phone || "";
-    if (key === "designation" || key === "title") return prospect.designation || prospect.title || "";
+    if (key === "designation" || key === "title")
+      return prospect.designation || prospect.title || "";
     if (key === "timezone") return prospect.ianatimezone || "";
-    if (key === "prospectaccount" || key === "company") return prospect.prospectaccount || prospect.company || "";
+    if (key === "prospectaccount" || key === "company")
+      return prospect.prospectaccount || prospect.company || "";
     if (key === "prospectstage") return prospect.prospectstage || prospect.stage || "";
     if (key === "owner") return prospect.owner || "";
 
     // 2. Check prospectFieldsList
     if (prospect.prospectFieldsList) {
       // Try ID match first
-      const fieldItem = prospect.prospectFieldsList.find((f: any) => f.fieldoriginid === field.fieldoriginid);
+      const fieldItem = prospect.prospectFieldsList.find(
+        (f: any) => f.fieldoriginid === field.fieldoriginid
+      );
       if (fieldItem) {
         return fieldItem.fieldtext ?? fieldItem.value ?? "";
       }
 
       // Try Name match
-      const fieldItemByName = prospect.prospectFieldsList.find((f: any) =>
-        f.fieldname && f.fieldname.toLowerCase() === field.fieldname.toLowerCase()
+      const fieldItemByName = prospect.prospectFieldsList.find(
+        (f: any) => f.fieldname && f.fieldname.toLowerCase() === field.fieldname.toLowerCase()
       );
       if (fieldItemByName) {
         return fieldItemByName.fieldtext ?? fieldItemByName.value ?? "";
@@ -324,9 +339,21 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     }
 
     // 3. Fallback checks for old hardcoded keys/dates
-    if (key === "sdrfirsttouchdate") return prospect.sdrfirsttouchdate || prospect.firsttouchdate || prospect.prospectDetails?.firsttouchdate || "";
+    if (key === "sdrfirsttouchdate")
+      return (
+        prospect.sdrfirsttouchdate ||
+        prospect.firsttouchdate ||
+        prospect.prospectDetails?.firsttouchdate ||
+        ""
+      );
     if (key === "createddate") return prospect.createddate || "";
-    if (key === "lastcontacteddate") return prospect.lastcontacteddate || prospect.lasttouchdate || prospect.prospectDetails?.lasttouchdate || "";
+    if (key === "lastcontacteddate")
+      return (
+        prospect.lastcontacteddate ||
+        prospect.lasttouchdate ||
+        prospect.prospectDetails?.lasttouchdate ||
+        ""
+      );
     if (key === "lastmodifieddate") return prospect.lastmodifieddate || "";
 
     // General fallback
@@ -338,7 +365,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
   const renderFieldInput = (field: any, currentValue: string, onChange: (val: string) => void) => {
     // Force fieldtype to lowercase string for robust matching
-    const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
+    const ft =
+      typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
 
     const commonInputProps = {
       value: currentValue,
@@ -419,7 +447,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       return (
         <Dropdown
           {...commonInputProps}
-          value={dummyDropdownOptions.find(opt => opt.key === currentValue)?.text || currentValue || ""}
+          value={
+            dummyDropdownOptions.find((opt) => opt.key === currentValue)?.text || currentValue || ""
+          }
           selectedOptions={currentValue ? [currentValue] : []}
           onOptionSelect={(_e: any, data: any) => {
             if (data.optionValue) {
@@ -486,11 +516,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
   const handleEditStart = (fieldId: number, currentValue: string) => {
     setEditingFieldId(fieldId);
-    setEditValues(prev => ({ ...prev, [fieldId]: currentValue }));
+    setEditValues((prev) => ({ ...prev, [fieldId]: currentValue }));
   };
 
   const handleEditChange = (fieldId: number, newValue: string) => {
-    setEditValues(prev => ({ ...prev, [fieldId]: newValue }));
+    setEditValues((prev) => ({ ...prev, [fieldId]: newValue }));
   };
 
   const handleSave = async (fieldId: number, overrideValue?: string) => {
@@ -505,7 +535,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     const updatedProspect = { ...prospect };
 
     // 2. Find the field config to know what we are updating
-    const fieldConfig = displayFields.find(f => f.fieldoriginid === fieldId);
+    const fieldConfig = displayFields.find((f) => f.fieldoriginid === fieldId);
 
     if (!fieldConfig) {
       console.error("Field config not found for id:", fieldId);
@@ -535,7 +565,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       alternatename: null,
       extravalue: null,
       ianatimezone: null,
-      timezone: null
+      timezone: null,
     };
 
     console.log("updateProspect payload:", payload);
@@ -544,10 +574,16 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
     // Always try to update in prospectFieldsList if the field exists there (handles both custom and system fields in the list)
     if (updatedProspect.prospectFieldsList) {
-      const fieldIndex = updatedProspect.prospectFieldsList.findIndex((f: any) => f.fieldoriginid === fieldId);
+      const fieldIndex = updatedProspect.prospectFieldsList.findIndex(
+        (f: any) => f.fieldoriginid === fieldId
+      );
       if (fieldIndex !== -1) {
         // Create copy of the field object
-        const updatedField = { ...updatedProspect.prospectFieldsList[fieldIndex], value: newValue, fieldtext: newValue }; // Optimistic update of text
+        const updatedField = {
+          ...updatedProspect.prospectFieldsList[fieldIndex],
+          value: newValue,
+          fieldtext: newValue,
+        }; // Optimistic update of text
         // Create copy of the list
         const updatedList = [...updatedProspect.prospectFieldsList];
         updatedList[fieldIndex] = updatedField;
@@ -557,7 +593,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
     // Update root property for standard fields if needed (compatibility with legacy props)
     if (!fieldConfig.iscustomfield) {
-      // Standard/System Field Mapping 
+      // Standard/System Field Mapping
       const key = getProspectPropertyKey(fieldConfig.fieldname);
 
       if (key === "firstname") updatedProspect.firstname = newValue;
@@ -565,9 +601,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       else if (key === "email") updatedProspect.emailid = newValue;
       else if (key === "phone") updatedProspect.flatphone = newValue;
       else if (key === "designation" || key === "title") updatedProspect.designation = newValue;
-      else if (key === "prospectaccount" || key === "company") updatedProspect.prospectaccount = newValue;
+      else if (key === "prospectaccount" || key === "company")
+        updatedProspect.prospectaccount = newValue;
       else if (key === "timezone") updatedProspect.ianatimezone = newValue;
-      else if (key === "prospectstage") updatedProspect.prospectstage = newValue; // check API expectation for this?
+      else if (key === "prospectstage")
+        updatedProspect.prospectstage = newValue; // check API expectation for this?
       else if (key === "owner") updatedProspect.owner = newValue;
       else {
         // Fallback: try to match fieldname directly
@@ -639,7 +677,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   };
 
   const openSendMessageDialog = () => {
-    const prospectName = prospect ? [prospect.firstname, prospect.lastname].filter(Boolean).join(" ") : "";
+    const prospectName = prospect
+      ? [prospect.firstname, prospect.lastname].filter(Boolean).join(" ")
+      : "";
     const url = new URL("/dialog.html", window.location.origin);
     url.searchParams.set("dialog", "sendMessage");
     if (prospectName) {
@@ -739,7 +779,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
             className="action-button"
-            onClick={() => { }}
+            onClick={() => {}}
           />
         </Tooltip>
         <Tooltip content="Call" relationship="label">
@@ -747,7 +787,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faPhone} size="sm" className="icon-phone" />}
             className="action-button"
-            onClick={() => { }}
+            onClick={() => {}}
           />
         </Tooltip>
         <Tooltip content="Text Message" relationship="label">
@@ -792,7 +832,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Status pills */}
       <div className="status-row">
-        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
+        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
           Bounced
         </Button>
         <div style={{ position: "relative", display: "inline-block" }}>
@@ -837,10 +877,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
               }}
             >
               {stages.length === 0 ? (
-                <div style={{ padding: "8px 12px", color: "#888", fontSize: 12 }}>No stages available</div>
+                <div style={{ padding: "8px 12px", color: "#888", fontSize: 12 }}>
+                  No stages available
+                </div>
               ) : (
                 stages.map((stage, idx) => {
-                  const stageId = stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid ?? idx;
+                  const stageId =
+                    stage.id ?? stage.prospectstageid ?? stage.value ?? stage.guid ?? idx;
                   const stageName = stage.name ?? stage.prospectstage ?? stage.label ?? "Unknown";
                   return (
                     <div
@@ -854,7 +897,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                       style={{
                         padding: "7px 16px",
                         cursor: "pointer",
-                        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                        fontFamily:
+                          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                         fontSize: 13,
                         lineHeight: "18px",
                         fontWeight: 400,
@@ -902,7 +946,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 <Button
                   appearance="subtle"
                   className="social-button"
-                  onClick={() => { }}
+                  onClick={() => {}}
                   aria-label="Facebook"
                 >
                   <span className="social-text social-text-bold">f</span>
@@ -913,7 +957,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                   appearance="subtle"
                   icon={<Share20Regular />}
                   className="social-button"
-                  onClick={() => { }}
+                  onClick={() => {}}
                   aria-label="Share"
                 />
               </Tooltip>
@@ -921,7 +965,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 <Button
                   appearance="subtle"
                   className="social-button"
-                  onClick={() => { }}
+                  onClick={() => {}}
                   aria-label="Twitter"
                 >
                   <span className="social-text">𝕏</span>
@@ -1005,20 +1049,33 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                 const doSave = async () => {
                                   const updatedProspect = { ...prospect };
 
-                                  const finalFieldOrigin = field.fieldorigin ?? (field.iscustomfield ? 2 : 1);
+                                  const finalFieldOrigin =
+                                    field.fieldorigin ?? (field.iscustomfield ? 2 : 1);
                                   // Normalise fieldtype: the phone field is stored as the string "phone" by getFieldType().
                                   // The API expects a numeric fieldtype, so coerce any non-numeric string to 1 (text).
                                   const rawFieldType = field.fieldtype ?? 1;
-                                  const finalFieldType = typeof rawFieldType === "string" && isNaN(Number(rawFieldType)) ? 1 : rawFieldType;
+                                  const finalFieldType =
+                                    typeof rawFieldType === "string" && isNaN(Number(rawFieldType))
+                                      ? 1
+                                      : rawFieldType;
 
                                   if (finalFieldOrigin === null || finalFieldOrigin === undefined) {
-                                    throw new Error("Validation Error: fieldorigin is null or undefined");
+                                    throw new Error(
+                                      "Validation Error: fieldorigin is null or undefined"
+                                    );
                                   }
                                   if (finalFieldType === null || finalFieldType === undefined) {
-                                    throw new Error("Validation Error: fieldtype is null or undefined");
+                                    throw new Error(
+                                      "Validation Error: fieldtype is null or undefined"
+                                    );
                                   }
-                                  if (field.fieldoriginid === null || field.fieldoriginid === undefined) {
-                                    throw new Error("Validation Error: fieldoriginid is null or undefined");
+                                  if (
+                                    field.fieldoriginid === null ||
+                                    field.fieldoriginid === undefined
+                                  ) {
+                                    throw new Error(
+                                      "Validation Error: fieldoriginid is null or undefined"
+                                    );
                                   }
 
                                   const payload: any = {
@@ -1030,7 +1087,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                                     alternatename: null,
                                     extravalue: null,
                                     ianatimezone: null,
-                                    timezone: null
+                                    timezone: null,
                                   };
 
                                   console.log("updateProspect payload:", payload);
@@ -1084,8 +1141,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
                 // Helper for date overlay
                 const renderDateOverlay = () => {
-                  const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
-                  if (ft !== "prospect_date" && ft !== 3 && ft !== "prospect_date_time" && ft !== 5) return undefined;
+                  const ft =
+                    typeof field.fieldtype === "string"
+                      ? field.fieldtype.toLowerCase()
+                      : field.fieldtype;
+                  if (ft !== "prospect_date" && ft !== 3 && ft !== "prospect_date_time" && ft !== 5)
+                    return undefined;
 
                   const isDateTime = ft === "prospect_date_time" || ft === 5;
                   const type = isDateTime ? "datetime-local" : "date";
@@ -1116,13 +1177,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                     onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                     onSave={() => handleSave(field.fieldoriginid)}
                     overlayComponent={renderDateOverlay()}
-                    editComponent={
-                      renderFieldInput(
-                        field,
-                        editValues[field.fieldoriginid] || "",
-                        (val) => handleEditChange(field.fieldoriginid, val)
-                      )
-                    }
+                    editComponent={renderFieldInput(
+                      field,
+                      editValues[field.fieldoriginid] || "",
+                      (val) => handleEditChange(field.fieldoriginid, val)
+                    )}
                   />
                 );
               })}
@@ -1150,12 +1209,23 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                     const isEditing = editingFieldId === field.fieldoriginid;
                     // Helper for date overlay
                     const renderDateOverlay = () => {
-                      const ft = typeof field.fieldtype === "string" ? field.fieldtype.toLowerCase() : field.fieldtype;
-                      if (ft !== "prospect_date" && ft !== 3 && ft !== "prospect_date_time" && ft !== 5) return undefined;
+                      const ft =
+                        typeof field.fieldtype === "string"
+                          ? field.fieldtype.toLowerCase()
+                          : field.fieldtype;
+                      if (
+                        ft !== "prospect_date" &&
+                        ft !== 3 &&
+                        ft !== "prospect_date_time" &&
+                        ft !== 5
+                      )
+                        return undefined;
 
                       const isDateTime = ft === "prospect_date_time" || ft === 5;
                       const type = isDateTime ? "datetime-local" : "date";
-                      const val = isDateTime ? currentValue : toDateInputValue(String(currentValue));
+                      const val = isDateTime
+                        ? currentValue
+                        : toDateInputValue(String(currentValue));
 
                       return (
                         <input
@@ -1181,13 +1251,11 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                         onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
                         onSave={() => handleSave(field.fieldoriginid)}
                         overlayComponent={renderDateOverlay()}
-                        editComponent={
-                          renderFieldInput(
-                            field,
-                            editValues[field.fieldoriginid] || "",
-                            (val) => handleEditChange(field.fieldoriginid, val)
-                          )
-                        }
+                        editComponent={renderFieldInput(
+                          field,
+                          editValues[field.fieldoriginid] || "",
+                          (val) => handleEditChange(field.fieldoriginid, val)
+                        )}
                       />
                     );
                   })}
@@ -1195,18 +1263,28 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 {/* Default System Fields */}
                 <div className="system-fields-section">
                   {[
-                    { label: "SDR First Touch Date", value: prospect?.sdrfirsttouchdate || prospect?.firsttouchdate || prospect?.prospectDetails?.firsttouchdate },
+                    {
+                      label: "SDR First Touch Date",
+                      value:
+                        prospect?.sdrfirsttouchdate ||
+                        prospect?.firsttouchdate ||
+                        prospect?.prospectDetails?.firsttouchdate,
+                    },
                     { label: "Created Date", value: prospect?.createddate },
-                    { label: "Last Contacted Date", value: prospect?.lastcontacteddate || prospect?.lasttouchdate || prospect?.prospectDetails?.lasttouchdate },
+                    {
+                      label: "Last Contacted Date",
+                      value:
+                        prospect?.lastcontacteddate ||
+                        prospect?.lasttouchdate ||
+                        prospect?.prospectDetails?.lasttouchdate,
+                    },
                     { label: "Last Modified Date", value: prospect?.lastmodifieddate },
                   ].map((sysField) => (
                     <div className="field-container" key={sysField.label}>
                       <Text className="field-label">{sysField.label}</Text>
                       <div className="field-display-row">
                         <div className="field-value-box">
-                          <span className="field-value-text">
-                            {formatDate(sysField.value)}
-                          </span>
+                          <span className="field-value-text">{formatDate(sysField.value)}</span>
                         </div>
                       </div>
                     </div>
@@ -1231,7 +1309,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         )}
         {activeTab === "activity" && (
           <div className="info-container">
-            <Text className="info-title">No recent activity</Text>
+            <Text className="info-title">Coming soon</Text>
           </div>
         )}
       </div>
@@ -1240,7 +1318,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         isOpen={isAddToSequenceModalOpen}
         onClose={() => setIsAddToSequenceModalOpen(false)}
       />
-    </section >
+    </section>
   );
 };
 
