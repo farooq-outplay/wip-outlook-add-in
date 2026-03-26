@@ -9,6 +9,7 @@ import {
     useId
 } from "@fluentui/react-components";
 import "./SendMessageDialog.css";
+import AnimatedModal from "../../../taskpane/components/AnimatedModal/AnimatedModal";
 import { createBulkSms } from "../../../utility/api/prospectService";
 
 const SendMessageDialog: React.FC = () => {
@@ -20,6 +21,7 @@ const SendMessageDialog: React.FC = () => {
     const [body, setBody] = useState("");
     const [selectedDialerId, setSelectedDialerId] = useState<number>(1);
     const [isSending, setIsSending] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -35,7 +37,10 @@ const SendMessageDialog: React.FC = () => {
     }, []);
 
     const handleClose = () => {
-        Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
+        setIsOpen(false);
+        setTimeout(() => {
+            Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
+        }, 250);
     };
 
     const notify = (intent: "success" | "error", title: string) => {
@@ -96,8 +101,9 @@ const SendMessageDialog: React.FC = () => {
     return (
         <FluentProvider theme={webLightTheme}>
             <Toaster toasterId={toasterId} />
-            <div className="sms-root">
-                <div className="sms-modal-header">
+            <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
+                <div className="sms-root">
+                    <div className="sms-modal-header">
                     <h2 className="sms-modal-title" id="sms-modal-title">Send Message</h2>
                     <button className="sms-modal-close" onClick={handleClose} aria-label="Close" disabled={isSending}>
                         ×
@@ -169,7 +175,8 @@ const SendMessageDialog: React.FC = () => {
                         {isSending ? "Sending..." : "Send"}
                     </button>
                 </div>
-            </div>
+                </div>
+            </AnimatedModal>
         </FluentProvider>
     );
 };

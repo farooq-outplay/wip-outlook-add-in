@@ -21,6 +21,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faTwitter, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import "./AddTaskModal.css";
+import AnimatedModal from "../../taskpane/components/AnimatedModal/AnimatedModal";
 
 import { createTask } from "../../utility/api/taskService";
 import { getAuthSession } from "../../utility/authSession";
@@ -58,10 +59,14 @@ const AddTaskModal: React.FC = () => {
   const [taskName, setTaskName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(true);
 
   // Handlers
   const handleClose = () => {
-    Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
+    setIsOpen(false);
+    setTimeout(() => {
+      Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
+    }, 250);
   };
 
   const handleSave = async () => {
@@ -104,9 +109,12 @@ const AddTaskModal: React.FC = () => {
       const response = await createTask(prospectId, payload);
 
       if (response.success) {
-        Office.context.ui.messageParent(
-          JSON.stringify({ status: "saveTask", data: response.data })
-        );
+        setIsOpen(false);
+        setTimeout(() => {
+          Office.context.ui.messageParent(
+            JSON.stringify({ status: "saveTask", data: response.data })
+          );
+        }, 250);
       } else {
         setError(response.error || "Failed to create task. Please try again.");
       }
@@ -119,9 +127,10 @@ const AddTaskModal: React.FC = () => {
 
   return (
     <FluentProvider theme={webLightTheme}>
-      <div className="task-modal-root">
-        {/* Header */}
-        <div className="task-header">
+      <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
+        <div className="task-modal-root">
+          {/* Header */}
+          <div className="task-header">
           <div className="task-header-title">
             {taskType === "email"
               ? "Create an Email Task"
@@ -337,7 +346,8 @@ const AddTaskModal: React.FC = () => {
             {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
-      </div>
+        </div>
+      </AnimatedModal>
     </FluentProvider>
   );
 };

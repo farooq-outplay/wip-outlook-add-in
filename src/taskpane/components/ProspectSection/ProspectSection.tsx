@@ -30,6 +30,19 @@ import { updateProspect, getProspectStages } from "../../../utility/api/prospect
 import InlineEditField from "../InlineEditField/InlineEditField";
 import TimezoneSelect, { ITimezone, ITimezoneOption, allTimezones } from "react-timezone-select";
 
+const getFullTimezones = () => {
+  const merged = { ...allTimezones } as Record<string, string>;
+  if (typeof Intl !== 'undefined' && Intl.supportedValuesOf) {
+    Intl.supportedValuesOf('timeZone').forEach((tz: string) => {
+      if (!merged[tz]) {
+        merged[tz] = tz.includes('/') ? tz.split('/').pop()?.replace(/_/g, ' ') || tz : tz;
+      }
+    });
+  }
+  return merged;
+};
+const fullTimezonesList = getFullTimezones();
+
 interface ProspectSectionProps {
   prospect: any;
   onClose?: () => void;
@@ -470,8 +483,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           value={prospect?.ianatimezone || ""}
           onChange={(tz: ITimezoneOption) => onChange(tz.value)}
           placeholder="Search timezone..."
-          labelStyle="original"
           className="full-width"
+          timezones={fullTimezonesList}
           menuPortalTarget={document.body}
           styles={{
             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -597,16 +610,51 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const domain = recipientDomain;
   const initials = recipientInitials;
 
-  // allTimezones value is a plain city-names string (e.g. "Kolkata").
-  // We build a richer label; if the key isn't in the map fall back to the
-  // raw IANA string so we always show something when data exists.
   const rawIana = prospect?.ianatimezone || prospect?.timezone || "";
-  const cityLabel = rawIana ? (allTimezones as Record<string, string>)[rawIana] : undefined;
-  const timezoneLabel = rawIana
-    ? cityLabel
-      ? `${rawIana.replace(/_/g, " ")} (${cityLabel})`
-      : rawIana
-    : null;
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timezoneLabel = useMemo(() => {
+    if (!rawIana) return null;
+    try {
+      const dateParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: rawIana,
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(currentTime);
+
+      const timeParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: rawIana,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(currentTime);
+
+      const offsetParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: rawIana, timeZoneName: 'shortOffset'
+      }).formatToParts(currentTime).find(p => p.type === 'timeZoneName')?.value;
+
+      let parsedOffset = "UTC+00:00";
+      if (offsetParts && offsetParts !== "GMT") {
+        let sign = offsetParts.includes("-") ? "-" : "+";
+        let timePart = offsetParts.replace(/GMT[+-]/, "");
+        let [hours, minutes] = timePart.split(":");
+        hours = hours.padStart(2, "0");
+        minutes = minutes || "00";
+        parsedOffset = `UTC${sign}${hours}:${minutes}`;
+      }
+
+      return `${dateParts} ${timeParts} (${parsedOffset}) ${rawIana}`;
+    } catch (err) {
+      return rawIana;
+    }
+  }, [rawIana, currentTime]);
 
   const openAddTaskDialog = () => {
     if (!prospect?.prospectid) {
