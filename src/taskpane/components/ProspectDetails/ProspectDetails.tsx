@@ -9,10 +9,8 @@ import {
 } from "../../../utility/models/prospect/prospect-response.model";
 import Loader from "../Loader/Loader";
 import "./ProspectDetails.css";
-import { ApiStatusCodes } from "../../../utility/types/apiResultTypes";
-import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 import ProspectSection from "../ProspectSection/ProspectSection";
-import { prospectDetailsObj } from "../../../utility/dummyData/dummyProspectData";
+import Login from "../Login/Login";
 
 const ProspectDetails: React.FC = () => {
   const { mode } = useAppContext();
@@ -52,7 +50,7 @@ const ProspectDetails: React.FC = () => {
       setEmail(emailAddress);
       getProspectInfoByEmail(emailAddress);
     }
-  }, []);
+  }, [accessToken]);
 
   const getProspectInfoByEmail = async (email: string | number) => {
     try {
@@ -62,8 +60,6 @@ const ProspectDetails: React.FC = () => {
       if (data.success) {
         setShowSomethingWentWrong(false);
         setProspect(data.data);
-        // console.log("prospectDetailsObj ::", prospectDetailsObj);
-        // setProspect(prospectDetailsObj);
       } else {
         setShowSomethingWentWrong(true);
       }
@@ -97,8 +93,13 @@ const ProspectDetails: React.FC = () => {
     }
   };
 
+  const handleLoginSuccess = (token: string) => {
+    setAccessToken(token);
+    setShowSomethingWentWrong(false);
+  };
+
   if (showSomethingWentWrong) {
-    return <SomethingWentWrong />;
+    return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (isLoading || !prospect) {
@@ -115,11 +116,7 @@ const ProspectDetails: React.FC = () => {
       </div>
     );
   }
-  return (
-    <ProspectSection
-      prospect={prospect}
-    />
-  );
+  return <ProspectSection prospect={prospect} />;
 };
 
 export default ProspectDetails;
