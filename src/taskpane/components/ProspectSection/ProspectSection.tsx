@@ -39,22 +39,8 @@ import "./ProspectSection.css";
 import AddToSequenceModal from "../AddToSequenceModal/AddToSequenceModal";
 import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
-import { updateProspect, getProspectStages } from "../../../utility/api/prospectService";
+import { updateProspect, getProspectStages, getTimezones } from "../../../utility/api/prospectService";
 import InlineEditField from "../InlineEditField/InlineEditField";
-import TimezoneSelect, { ITimezone, ITimezoneOption, allTimezones } from "react-timezone-select";
-
-const getFullTimezones = () => {
-  const merged = { ...allTimezones } as Record<string, string>;
-  if (typeof Intl !== 'undefined' && Intl.supportedValuesOf) {
-    Intl.supportedValuesOf('timeZone').forEach((tz: string) => {
-      if (!merged[tz]) {
-        merged[tz] = tz.includes('/') ? tz.split('/').pop()?.replace(/_/g, ' ') || tz : tz;
-      }
-    });
-  }
-  return merged;
-};
-const fullTimezonesList = getFullTimezones();
 
 interface ProspectSectionProps {
   prospect: any;
@@ -148,6 +134,9 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const stageButtonRef = useRef<HTMLButtonElement | null>(null);
   const stageDropdownRef = useRef<HTMLDivElement | null>(null);
 
+  // Timezone options fetched from API
+  const [timezoneOptions, setTimezoneOptions] = useState<{ key: string; text: string }[]>([]);
+
   // Modal State
   const [isAddToSequenceModalOpen, setIsAddToSequenceModalOpen] = useState(false);
 
@@ -207,6 +196,63 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   useEffect(() => {
     setProspect(initialProspect);
   }, [initialProspect]);
+
+  // Build timezone options from Intl (always available) — used as fallback
+  const buildIntlTimezoneOptions = (): { key: string; text: string }[] => {
+    if (typeof Intl !== "undefined" && Intl.supportedValuesOf) {
+      return Intl.supportedValuesOf("timeZone").map((tz: string) => ({ key: tz, text: tz }));
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    // Seed immediately with Intl timezones so the list is never empty
+    setTimezoneOptions(buildIntlTimezoneOptions());
+
+    getTimezones()
+      .then((res) => {
+        console.log("getTimezones raw response:", res);
+
+        // mobileApiClient wraps every response as { success, data }
+        // The actual payload lives in res.data (or res itself if raw array)
+        const payload = res?.success === true ? res.data : res;
+
+        let list: any[] = [];
+        if (Array.isArray(payload)) {
+          list = payload;
+        } else if (payload && Array.isArray(payload.data)) {
+          list = payload.data;
+        } else if (payload && Array.isArray(payload.timezones)) {
+          list = payload.timezones;
+        }
+
+        if (list.length === 0) {
+          // API returned nothing useful — keep Intl fallback already set above
+          console.warn("getTimezones: no usable list in response, using Intl fallback");
+          return;
+        }
+
+        // Normalise both { id, name, ianaName } objects and flat strings
+        const options = list
+          .map((tz: any) => {
+            if (typeof tz === "string") return { key: tz, text: tz };
+            const ianaName: string =
+              tz.ianaName || tz.iananame || tz.value || tz.timezone || tz.name || "";
+            const displayName: string = tz.name || tz.displayName || tz.label || ianaName;
+            return { key: ianaName, text: displayName };
+          })
+          .filter((o) => o.key); // drop any entries with empty keys
+
+        if (options.length > 0) {
+          setTimezoneOptions(options);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching timezones, using Intl fallback:", err);
+        // Intl fallback already set above — nothing more to do
+      });
+  }, []);
+
 
   useEffect(() => {
     getProspectStages()
@@ -509,17 +555,27 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     // ── Timezone (fieldoriginid = 6) ──
     if (field.fieldoriginid === 6) {
       return (
-        <TimezoneSelect
-          value={prospect?.ianatimezone || ""}
-          onChange={(tz: ITimezoneOption) => onChange(tz.value)}
+        <Dropdown
           placeholder="Search timezone..."
-          className="full-width"
-          timezones={fullTimezonesList}
-          menuPortalTarget={document.body}
-          styles={{
-            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          value={
+            timezoneOptions.find((opt) => opt.key === currentValue)?.text ||
+            currentValue ||
+            ""
+          }
+          selectedOptions={currentValue ? [currentValue] : []}
+          onOptionSelect={(_e: any, data: any) => {
+            if (data.optionValue) {
+              onChange(data.optionValue);
+            }
           }}
-        />
+          className="input-full-width field-select"
+        >
+          {timezoneOptions.map((opt) => (
+            <Option key={opt.key} value={opt.key}>
+              {opt.text}
+            </Option>
+          ))}
+        </Dropdown>
       );
     }
 
@@ -659,24 +715,27 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   const timezoneLabel = useMemo(() => {
     if (!rawIana) return null;
     try {
-      const dateParts = new Intl.DateTimeFormat('en-US', {
+      const dateParts = new Intl.DateTimeFormat("en-US", {
         timeZone: rawIana,
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }).format(currentTime);
 
-      const timeParts = new Intl.DateTimeFormat('en-US', {
+      const timeParts = new Intl.DateTimeFormat("en-US", {
         timeZone: rawIana,
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       }).format(currentTime);
 
-      const offsetParts = new Intl.DateTimeFormat('en-US', {
-        timeZone: rawIana, timeZoneName: 'shortOffset'
-      }).formatToParts(currentTime).find(p => p.type === 'timeZoneName')?.value;
+      const offsetParts = new Intl.DateTimeFormat("en-US", {
+        timeZone: rawIana,
+        timeZoneName: "shortOffset",
+      })
+        .formatToParts(currentTime)
+        .find((p) => p.type === "timeZoneName")?.value;
 
       let parsedOffset = "UTC+00:00";
       if (offsetParts && offsetParts !== "GMT") {
@@ -870,10 +929,18 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           />
         </Tooltip>
         <MoreOptionsMenu
+          prospectId={prospect?.prospectid}
+          isOptedOut={prospect?.optedout ?? prospect?.optedOut}
+          onOptStatusChange={(optedOut) => {
+            setProspect((prev: any) => ({ ...prev, optedout: optedOut }));
+          }}
           onPause={() => console.log("Pause clicked")}
           onMarkFinished={() => console.log("Mark as Finished clicked")}
           onOptOut={() => console.log("Opt-out clicked")}
-          onDelete={() => console.log("Delete clicked")}
+          onDelete={() => {
+            console.log("Delete clicked");
+            if (onClose) onClose();
+          }}
           onLogCall={() => console.log("Log Call clicked")}
         />
       </div>

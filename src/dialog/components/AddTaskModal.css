@@ -1,3 +1,22 @@
+/* Fix 1: Hide Office Dialog custom scrollbars */
+.customScrollBar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.customScrollBar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
 .task-modal-root {
     padding: 20px;
     background-color: var(--colorNeutralBackground1);
@@ -24,7 +43,7 @@
 .icon-row {
     display: flex;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 11px; /* Reduced by 9px to exactly fit the 700px container */
 }
 
 .icon-button {

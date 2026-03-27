@@ -42,3 +42,9 @@ export const createTask = async (
         return { success: false, status: 500, error: "Error creating task" };
     }
 };
+
+export const getCallOutcomes = async (): Promise<any> => {
+    return mobileApiClient("/api/v1/cexttask/calloutcomes/", {
+        method: "GET",
+    });
+};

@@ -1,5 +1,5 @@
 /// <reference types="office-js" />
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   Combobox,
@@ -19,17 +19,27 @@ import "./Dialog.css";
 import { getSequences, Sequence } from "../../utility/api/sequenceService";
 import { getSenders, Sender } from "../../utility/api/senderService";
 import { getAuthSession } from "../../utility/authSession";
+import { getCallOutcomes } from "../../utility/api/taskService";
 
 const Dialog: React.FC = () => {
   // Mock data
   // const sequences = ["Outbound Sequence 1", "Follow-up Campaign", "Nurture Track"];
   const opportunities = ["Most recently updated open", "New Deal 2024", "Main Account Expansion"];
-  const dispositions = ["Connected", "Left Voicemail", "Busy", "Wrong Number"];
 
   // State
-  const [sequences, setSequences] = useState<Sequence[]>([]);
+  const [sequences, setSequences] = useState<any[]>([]);
   const [isLoadingSequences, setIsLoadingSequences] = useState<boolean>(false);
   const [sequenceError, setSequenceError] = useState<string | null>(null);
+
+  const MOCK_SEQUENCES = [
+    { id:"1", name:"New Sequence",                   team:false },
+    { id:"2", name:"testauto",                       team:false },
+    { id:"3", name:"auto",                           team:false },
+    { id:"4", name:"test2",                          team:false },
+    { id:"5", name:"Test",                           team:false },
+    { id:"6", name:"ICP_24_Default_Sequence_4I",     team:true  },
+    { id:"7", name:"ICP_24_VP_&_Directors_Sequence", team:true  },
+  ];
 
   const [selectedSequence, setSelectedSequence] = useState<string>("");
   const [senders, setSenders] = useState<Sender[]>([]);
@@ -38,7 +48,13 @@ const Dialog: React.FC = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState<string>(opportunities[0]);
   const [callNotes, setCallNotes] = useState<string>("");
   const [callDisposition, setCallDisposition] = useState<string>("Select");
+  const [callOutcomes, setCallOutcomes] = useState<any[]>([]);
   const [dialogType, setDialogType] = useState<string>("default");
+
+  // Custom Sequence Dropdown State
+  const [isSeqOpen, setIsSeqOpen] = useState<boolean>(false);
+  const [seqSearch, setSeqSearch] = useState<string>("");
+  const seqDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -51,19 +67,11 @@ const Dialog: React.FC = () => {
     if (!type || type === "default") {
       setIsLoadingSequences(true);
       setSequenceError(null);
-      getSequences()
-        .then((result) => {
-          if (result.success) {
-            setSequences(result.data);
-          } else {
-            setSequenceError(result.error || "Failed to load sequences");
-          }
-          setIsLoadingSequences(false);
-        })
-        .catch(() => {
-          setSequenceError("An error occurred while fetching sequences");
-          setIsLoadingSequences(false);
-        });
+      // Use Mock Data instead of API
+      setTimeout(() => {
+        setSequences(MOCK_SEQUENCES);
+        setIsLoadingSequences(false);
+      }, 200);
 
       // Fetch senders
       setIsLoadingSenders(true);
@@ -89,7 +97,35 @@ const Dialog: React.FC = () => {
         setIsLoadingSenders(false);
       }
     }
+
+    if (type === "logCall") {
+      getCallOutcomes()
+        .then((res) => {
+          if (res && res.success && res.data) {
+             const data = res.data;
+             const list = Array.isArray(data) ? data : (data.outcomes || data.data || []);
+             setCallOutcomes(list);
+          } else if (Array.isArray(res)) {
+            setCallOutcomes(res);
+          }
+        })
+        .catch((err) => console.error("Failed to load call outcomes", err));
+    }
   }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (seqDropdownRef.current && !seqDropdownRef.current.contains(e.target as Node)) {
+        setIsSeqOpen(false);
+      }
+    };
+    if (isSeqOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isSeqOpen]);
 
   // Handle Close
   const handleClose = () => {
@@ -278,11 +314,15 @@ const Dialog: React.FC = () => {
                 value={callDisposition === "Select" ? undefined : callDisposition}
                 onOptionSelect={(_e, data) => setCallDisposition(data.optionText || "")}
               >
-                {dispositions.map((disp) => (
-                  <Option key={disp} text={disp}>
-                    {disp}
-                  </Option>
-                ))}
+                {callOutcomes.map((disp, idx) => {
+                  const text = typeof disp === "string" ? disp : (disp.name || disp.label || disp.value || disp.outcome || "Unknown");
+                  const key = typeof disp === "string" ? disp : (disp.id || disp.guid || idx);
+                  return (
+                    <Option key={String(key)} text={String(text)}>
+                      {String(text)}
+                    </Option>
+                  );
+                })}
               </Dropdown>
             </div>
 
@@ -335,22 +375,115 @@ const Dialog: React.FC = () => {
         </div>
 
         <div className="content-container">
-          {/* Search Sequences */}
-          <div className="field-group">
-            <Combobox
-              placeholder={isLoadingSequences ? "Loading sequences..." : "Search Sequences"}
-              className="dropdown-full-width"
-              onOptionSelect={(_e, data) => setSelectedSequence(data.optionText || "")}
-              value={selectedSequence}
-              onChange={(e) => setSelectedSequence(e.target.value)}
-              disabled={isLoadingSequences}
-            >
-              {sequences.map((seq) => (
-                <Option key={seq.id} text={seq.name}>
-                  {seq.name}
-                </Option>
-              ))}
-            </Combobox>
+          {/* Custom Search Sequences Dropdown */}
+          <div className="field-group" ref={seqDropdownRef}>
+            <div className="seq-wrap">
+              <button 
+                className={`seq-trigger ${isSeqOpen ? "active" : ""}`}
+                onClick={() => setIsSeqOpen(!isSeqOpen)}
+                disabled={isLoadingSequences}
+                type="button"
+              >
+                <span className="trigger-left">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M2 8l3-3-3-3" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="5" y1="8" x2="15" y2="8" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className={`trigger-text ${selectedSequence ? "selected-val" : "placeholder"}`}>
+                    {isLoadingSequences ? "Loading sequences..." : (selectedSequence ? selectedSequence : "Search Sequences")}
+                  </span>
+                </span>
+                <span className="chevron">
+                  <svg viewBox="0 0 16 16" fill="none" width="15" height="15" style={{ display: "block" }}>
+                    <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              </button>
+
+              <div className={`seq-panel ${isSeqOpen ? "open" : ""}`}>
+                <div className="search-row">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <input 
+                    type="text" 
+                    placeholder="Search Sequences" 
+                    value={seqSearch}
+                    onChange={(e) => setSeqSearch(e.target.value)}
+                    autoFocus={isSeqOpen}
+                  />
+                </div>
+
+                <div className="seq-list">
+                  {sequences.filter(s => !s.team && s.name.toLowerCase().includes(seqSearch.toLowerCase())).length > 0 && (
+                    <>
+                      <div className="sec-hdr">
+                        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.8" stroke="#9ca3af" strokeWidth="1.3"/><path d="M2 15c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        Me
+                      </div>
+                      {sequences
+                        .filter(s => !s.team && s.name.toLowerCase().includes(seqSearch.toLowerCase()))
+                        .map(seq => (
+                          <div 
+                            key={seq.id} 
+                            className={`seq-item ${selectedSequence === seq.name ? "active" : ""}`}
+                            onClick={() => {
+                              setSelectedSequence(seq.name);
+                              setIsSeqOpen(false);
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                              <path d="M2 8l3-3-3-3" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <line x1="5" y1="8" x2="15" y2="8" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                            <span className="seq-item-name">{seq.name}</span>
+                          </div>
+                      ))}
+                    </>
+                  )}
+
+                  {sequences.filter(s => s.team && s.name.toLowerCase().includes(seqSearch.toLowerCase())).length > 0 && (
+                    <>
+                      <div className="sec-hdr">
+                        <svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="7" r="2.8" stroke="#9ca3af" strokeWidth="1.3"/><path d="M2 16c0-3 2-4.5 5-4.5s5 1.5 5 4.5" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round"/><circle cx="14.5" cy="7" r="2.2" stroke="#9ca3af" strokeWidth="1.2"/><path d="M17.5 16c0-2.2-1.3-3.5-3-3.5" stroke="#9ca3af" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                        Team
+                      </div>
+                      {sequences
+                        .filter(s => s.team && s.name.toLowerCase().includes(seqSearch.toLowerCase()))
+                        .map(seq => (
+                          <div 
+                            key={seq.id} 
+                            className={`seq-item ${selectedSequence === seq.name ? "active" : ""}`}
+                            onClick={() => {
+                              setSelectedSequence(seq.name);
+                              setIsSeqOpen(false);
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                              <path d="M2 8l3-3-3-3" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <line x1="5" y1="8" x2="15" y2="8" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                            <span className="seq-item-name">{seq.name}</span>
+                            <span className="team-badge" style={{ flexShrink: 0, opacity: 0.45 }}>
+                              <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+                                <circle cx="7" cy="7" r="2.8" stroke="#9ca3af" strokeWidth="1.3"/>
+                                <path d="M2 16c0-3 2-4.5 5-4.5s5 1.5 5 4.5" stroke="#9ca3af" strokeWidth="1.3" strokeLinecap="round"/>
+                                <circle cx="14.5" cy="7" r="2.2" stroke="#9ca3af" strokeWidth="1.2"/>
+                                <path d="M17.5 16c0-2.2-1.3-3.5-3-3.5" stroke="#9ca3af" strokeWidth="1.2" strokeLinecap="round"/>
+                              </svg>
+                            </span>
+                          </div>
+                      ))}
+                    </>
+                  )}
+
+                  {sequences.filter(s => s.name.toLowerCase().includes(seqSearch.toLowerCase())).length === 0 && (
+                    <div className="empty">No sequences found</div>
+                  )}
+                </div>
+              </div>
+            </div>
             {sequenceError && <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>{sequenceError}</div>}
             {!isLoadingSequences && !sequenceError && sequences.length === 0 && (
               <div style={{ color: "gray", fontSize: "12px", marginTop: "4px" }}>No sequences found</div>

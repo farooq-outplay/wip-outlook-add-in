@@ -1,5 +1,13 @@
 /// <reference types="office-js" />
 import React, { useState } from "react";
+
+// Capture current date/time once when the modal is loaded
+const _now = new Date();
+const _pad = (n: number) => String(n).padStart(2, "0");
+// YYYY-MM-DD  – matches what <Input type="date"> expects internally
+const _todayISO = `${_now.getFullYear()}-${_pad(_now.getMonth() + 1)}-${_pad(_now.getDate())}`;
+// HH:MM (24-h) – matches what <Input type="time"> expects internally
+const _currentTime = `${_pad(_now.getHours())}:${_pad(_now.getMinutes())}`;
 import {
   Button,
   Dropdown,
@@ -10,7 +18,6 @@ import {
   FluentProvider,
   webLightTheme,
 } from "@fluentui/react-components";
-import { Clock24Regular } from "@fluentui/react-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEnvelope,
@@ -49,8 +56,8 @@ const AddTaskModal: React.FC = () => {
   // State
   const [opportunity, setOpportunity] = useState("No Opportunity");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("2026-01-08");
-  const [time, setTime] = useState("11:25");
+  const [date, setDate] = useState(_todayISO);
+  const [time, setTime] = useState(_currentTime);
   const [assignTo, setAssignTo] = useState("Outplaytest22");
   const [priority, setPriority] = useState("High");
   const [taskType, setTaskType] = useState<TaskType>("email");
@@ -286,7 +293,6 @@ const AddTaskModal: React.FC = () => {
               <Input
                 type="time"
                 value={time}
-                contentAfter={<Clock24Regular style={{ color: "var(--colorNeutralForeground3)" }} />}
                 className="input-control"
                 onChange={(_e, data) => setTime(data.value)}
               />

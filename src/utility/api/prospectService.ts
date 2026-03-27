@@ -42,3 +42,44 @@ export const getProspectStages = (): Promise<any> => {
     method: "GET",
   });
 };
+
+export const pauseProspect = (payload: { prospectId: number }): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/pause/", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const markAsFinishedProspect = (payload: { prospectId: number }): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/markfinished/", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const optOutProspect = (payload: { prospectid: number }): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/optout", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const optInProspect = (payload: { prospectid: number }): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/optin/", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const deleteProspect = (payload: { prospectId: number }): Promise<any> => {
+  return mobileApiClient("/api/v1/cextprospect/delete", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+export const getTimezones = (): Promise<any> => {
+  return mobileApiClient("/api/v1/cextuser/timezones", {
+    method: "GET",
+  });
+};

@@ -1,4 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { pauseProspect, markAsFinishedProspect, optOutProspect, optInProspect, deleteProspect } from "../../../utility/api/prospectService";
 import {
   Button,
   Menu,
@@ -12,20 +14,34 @@ import { MoreHorizontal20Regular } from "@fluentui/react-icons";
 import "./MoreOptionsMenu.css";
 
 interface MoreOptionsMenuProps {
+  prospectId?: number;
+  isOptedOut?: boolean;
   onPause?: () => void;
   onMarkFinished?: () => void;
   onOptOut?: () => void;
+  onOptStatusChange?: (optedOut: boolean) => void;
   onDelete?: () => void;
   onLogCall?: () => void;
 }
 
 const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
+  prospectId,
+  isOptedOut,
   onPause,
   onMarkFinished,
   onOptOut,
+  onOptStatusChange,
   onDelete,
   onLogCall,
 }) => {
+  const [optedOut, setOptedOut] = useState<boolean>(isOptedOut ?? false);
+
+  useEffect(() => {
+    if (isOptedOut !== undefined) {
+      setOptedOut(isOptedOut);
+    }
+  }, [isOptedOut]);
+
   const dialogRef = useRef<Office.Dialog | null>(null);
 
   const processMessage = (arg: any) => {
@@ -40,19 +56,19 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
       dialogRef.current?.close();
       dialogRef.current = null;
     } else if (message.status === "submitted" && message.data?.action === "pause") {
-      if (onPause) onPause();
+      handlePauseApiCall();
       dialogRef.current?.close();
       dialogRef.current = null;
     } else if (message.status === "submitted" && message.data?.action === "markFinished") {
-      if (onMarkFinished) onMarkFinished();
+      handleMarkFinishedApiCall();
       dialogRef.current?.close();
       dialogRef.current = null;
     } else if (message.status === "submitted" && message.data?.action === "optOut") {
-      if (onOptOut) onOptOut();
+      handleOptOutApiCall();
       dialogRef.current?.close();
       dialogRef.current = null;
     } else if (message.status === "submitted" && message.data?.action === "delete") {
-      if (onDelete) onDelete();
+      handleDeleteApiCall();
       dialogRef.current?.close();
       dialogRef.current = null;
     } else if (message.status === "submitted" && message.data?.action === "logCall") {
@@ -84,6 +100,129 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
     );
   };
 
+  const handlePauseApiCall = async () => {
+    if (!prospectId) {
+      toast.error("Prospect ID is missing.");
+      return;
+    }
+    try {
+      const res = await pauseProspect({ prospectId });
+      const payload = res?.success === true ? res.data : res;
+
+      if (payload && payload.success === true) {
+        toast.success("Prospect paused successfully");
+        if (onPause) onPause();
+      } else {
+        const errorMessage =
+          payload && payload.errors && payload.errors.length > 0
+            ? payload.errors[0].message
+            : "Failed to pause prospect";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      toast.error("An unexpected error occurred while pausing.");
+    }
+  };
+
+  const handleMarkFinishedApiCall = async () => {
+    if (!prospectId) {
+      toast.error("Prospect ID is missing.");
+      return;
+    }
+    try {
+      const res = await markAsFinishedProspect({ prospectId });
+      const payload = res?.success === true ? res.data : res;
+
+      if (payload && payload.success === true) {
+        toast.success("Prospect marked as finished successfully");
+        if (onMarkFinished) onMarkFinished();
+      } else {
+        const errorMessage =
+          payload && payload.errors && payload.errors.length > 0
+            ? payload.errors[0].message
+            : "Failed to mark prospect as finished";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      toast.error("An unexpected error occurred while marking as finished.");
+    }
+  };
+
+  const handleOptOutApiCall = async () => {
+    if (!prospectId) {
+      toast.error("Prospect ID is missing.");
+      return;
+    }
+    try {
+      const res = await optOutProspect({ prospectid: prospectId });
+      const payload = res?.success === true ? res.data : res;
+
+      if (payload && payload.success === true) {
+        toast.success("Prospect opted-out successfully");
+        setOptedOut(true);
+        if (onOptOut) onOptOut();
+        if (onOptStatusChange) onOptStatusChange(true);
+      } else {
+        const errorMessage =
+          payload && payload.errors && payload.errors.length > 0
+            ? payload.errors[0].message
+            : "Failed to opt-out prospect";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      toast.error("An unexpected error occurred while opting out.");
+    }
+  };
+
+  const handleOptInClick = async () => {
+    if (!prospectId) {
+      toast.error("Prospect ID is missing.");
+      return;
+    }
+    try {
+      const res = await optInProspect({ prospectid: prospectId });
+      const payload = res?.success === true ? res.data : res;
+
+      if (payload && payload.success === true) {
+        toast.success("Prospect opted-in successfully");
+        setOptedOut(false);
+        if (onOptStatusChange) onOptStatusChange(false);
+      } else {
+        const errorMessage =
+          payload && payload.errors && payload.errors.length > 0
+            ? payload.errors[0].message
+            : "Failed to opt-in prospect";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      toast.error("An unexpected error occurred while opting in.");
+    }
+  };
+
+  const handleDeleteApiCall = async () => {
+    if (!prospectId) {
+      toast.error("Prospect ID is missing.");
+      return;
+    }
+    try {
+      const res = await deleteProspect({ prospectId });
+      const payload = res?.success === true ? res.data : res;
+
+      if (payload && payload.success === true) {
+        toast.success("Prospect deleted successfully.");
+        if (onDelete) onDelete();
+      } else {
+        const errorMessage =
+          payload && payload.errors && payload.errors.length > 0
+            ? payload.errors[0].message
+            : "Failed to delete prospect";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      toast.error("An unexpected error occurred while deleting.");
+    }
+  };
+
   const handlePauseClick = () => openDialog("pause", 30, 40);
   const handleMarkFinishedClick = () => openDialog("markFinished", 30, 40);
   const handleOptOutClick = () => openDialog("optOut", 30, 40);
@@ -108,7 +247,11 @@ const MoreOptionsMenu: React.FC<MoreOptionsMenuProps> = ({
           <MenuList>
             <MenuItem onClick={handlePauseClick}>Pause</MenuItem>
             <MenuItem onClick={handleMarkFinishedClick}>Mark as Finished</MenuItem>
-            <MenuItem onClick={handleOptOutClick}>Opt-out</MenuItem>
+            {optedOut ? (
+              <MenuItem onClick={handleOptInClick}>Opt-in</MenuItem>
+            ) : (
+              <MenuItem onClick={handleOptOutClick}>Opt-out</MenuItem>
+            )}
             <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
             <MenuItem onClick={handleLogCallClick}>Log Call</MenuItem>
           </MenuList>

@@ -78,15 +78,22 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
             // Use setTimeout so relatedTarget is populated and we can check if focus
             // moved to another child within the same container
             blurTimeoutRef.current = setTimeout(() => {
-                if (
-                    containerRef.current &&
-                    !containerRef.current.contains(document.activeElement)
-                ) {
+                // Give portal-based popovers (e.g. Fluent UI Dropdown listbox) time to
+                // receive focus before deciding that the user has left the field.
+                // Check both document.activeElement and any open Fluent listbox portals.
+                const active = document.activeElement;
+                const insideContainer = containerRef.current?.contains(active);
+                const insidePortal =
+                    active?.closest('[role="listbox"]') !== null ||
+                    active?.closest('[data-popper-escaped]') !== null ||
+                    active?.closest(".fui-Dropdown__popup") !== null;
+
+                if (!insideContainer && !insidePortal) {
                     if (isEditing) {
                         onSave();
                     }
                 }
-            }, 0);
+            }, 200);
         },
         [isEditing, onSave]
     );

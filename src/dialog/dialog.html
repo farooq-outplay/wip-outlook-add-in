@@ -2,6 +2,22 @@
 <html>
 
 <head>
+    <style>
+        #appContainer,
+        #appContainer.customScrollBar,
+        .Flvp1.customScrollBar,
+        [class*="customScrollBar"] {
+            overflow: hidden !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        #appContainer::-webkit-scrollbar,
+        [class*="customScrollBar"]::-webkit-scrollbar {
+            width: 0 !important;
+            display: none !important;
+        }
+    </style>
     <meta charset="utf-8" />
     <title>Dialog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />

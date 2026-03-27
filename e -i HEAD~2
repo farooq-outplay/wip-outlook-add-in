@@ -1,0 +1,38 @@
+[33m00e0c68[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev-harshit-2[m[33m, [m[1;31morigin/dev-harshit-2[m[33m)[m fix(ui): scrolling clip fix, edit icon hover behavior, faster modal load, real-time datetime in Add Task modal
+[33m234881d[m fix(ui): scrolling clip fix, edit icon hover behavior, faster modal load, real-time datetime in Add Task modal
+[33mc4e4f1c[m feat: add react-toastify for notifications and update component styles
+[33mb3eb54d[m feat: integrate Login component and update prospect loading logic
+[33m21f6d63[m Merge branch 'dev-harshit-2' of https://github.com/farooq-outplay/wip-outlook-add-in into dev-harshit-2
+[33m9a45ad7[m Feat: Added ease in and out transition to models
+[33m9960a62[m feat: add force package and update ProspectSection styles and functionality
+[33m6e876c7[m feat: add Text Message modal with createBulkSms API integration and implement stage dropdown in Prospect Profile
+[33mf4974fd[m feat(task): integrate taskService API with Add Task button; add copy-to-clipboard functionality; implement text message modal; redirect WhatsApp action to phone number
+[33m2a39c4b[m feat: add timezone field with UI display, refactor date-time component, and add dummy data for prospect dropdown selection
+[33m6d50bd3[m feat: implement editable fields with backend save and fix layout scrollbars
+[33me0cdd3f[m Refactor ProspectSection: align Section1 with Section2 structure, pass prospect as props, add reusable InlineEdit component, and include remaining action icons
+[33maedae90[m fix: correct sequence search API path
+[33ma8075fa[m [change] prospect section ref
+[33m5799b66[m [change] endpoint
+[33m96a7a32[m feat: integrate add-to-sequence API, refactor mobile phone & edit UI, and apply correct field data types
+[33mb039bdd[m feat: map SDR and contact date fields with API and refactor show more/less toggle
+[33m1f9263c[m fix(prospect-info): render API fieldtext values for default and custom fields
+[33m14af478[m feat: Update Prospect Info search UI and add contact fields
+[33mf35f3a6[m Refactor info tab fields and add search button UI
+[33md9da2bb[m css
+[33m6201e67[m fixess'
+[33m387b748[m Ui fix
+[33m556f035[m ui fix
+[33m7505e7a[m refactor: remove header bar and title from ProspectSection component
+[33m9457bf1[m Integrate prospect section UI components
+[33m303952a[m Merge branch 'dev-harshit-2' of https://github.com/farooq-outplay/wip-outlook-add-in into dev-harshit-2
+[33md49ea62[m[33m ([m[1;31morigin/dev-farooq-2[m[33m)[m feat: implement styled login button and integrate CSS for Login component
+[33m33be239[m Merge pull request #2 from farooq-outplay/dev-farooq-2
+[33ma3210bb[m feat: enhance ProspectDetails component with error handling and loading state; refactor API interactions and types
+[33m8160d51[m Initial commit
+[33m65c3953[m feat: add Loader component and integrate loading state in ProspectDetails; refactor prospect handling and API interactions
+[33m887c0a9[m feat: Refactor App component to use context for mode management and integrate ReadView
+[33m618a6ff[m feat: implement authentication session management and prospect data retrieval
+[33m541e6b5[m feat: implement authentication flow with token exchange and dialog management
+[33m114136b[m refactor: streamline Outlook mode detection and rendering logic
+[33me7565f8[m chore: update dependencies in package.json
+[33mb50fe55[m Add SSO page and text insertion components
