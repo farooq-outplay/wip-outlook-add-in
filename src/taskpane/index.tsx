@@ -5,6 +5,7 @@ import App from "./components/App/App";
 import { Mode } from "../utility/enums/common.enum";
 import { AppProvider } from "../utility/store/AppContext";
 import "./index.css";
+import "react-toastify/dist/ReactToastify.css";
 
 /* global document, Office, module */
 
