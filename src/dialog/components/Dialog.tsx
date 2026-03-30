@@ -15,7 +15,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { Pause20Regular, CheckmarkCircle20Regular, Prohibited20Regular, Delete20Regular, Dismiss24Regular } from "@fluentui/react-icons";
 import "./Dialog.css";
-import AnimatedModal from "../../taskpane/components/AnimatedModal/AnimatedModal";
 
 import { getSequences, Sequence } from "../../utility/api/sequenceService";
 import { getSenders, Sender } from "../../utility/api/senderService";
@@ -40,7 +39,6 @@ const Dialog: React.FC = () => {
   const [callNotes, setCallNotes] = useState<string>("");
   const [callDisposition, setCallDisposition] = useState<string>("Select");
   const [dialogType, setDialogType] = useState<string>("default");
-  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -94,33 +92,26 @@ const Dialog: React.FC = () => {
   }, []);
 
   // Handle Close
-  const triggerParentMessage = (payload: any) => {
-    setIsOpen(false);
-    setTimeout(() => {
-      Office.context.ui.messageParent(JSON.stringify(payload));
-    }, 250);
-  };
-
   const handleClose = () => {
-    triggerParentMessage({ status: "closed" });
+    Office.context.ui.messageParent(JSON.stringify({ status: "closed" }));
   };
 
   // Handle Submit
   const handleSubmit = () => {
     if (dialogType === "pause") {
-      triggerParentMessage({ status: "submitted", data: { action: "pause" } });
+      Office.context.ui.messageParent(JSON.stringify({ status: "submitted", data: { action: "pause" } }));
       return;
     }
     if (dialogType === "markFinished") {
-      triggerParentMessage({ status: "submitted", data: { action: "markFinished" } });
+      Office.context.ui.messageParent(JSON.stringify({ status: "submitted", data: { action: "markFinished" } }));
       return;
     }
     if (dialogType === "optOut") {
-      triggerParentMessage({ status: "submitted", data: { action: "optOut" } });
+      Office.context.ui.messageParent(JSON.stringify({ status: "submitted", data: { action: "optOut" } }));
       return;
     }
     if (dialogType === "delete") {
-      triggerParentMessage({ status: "submitted", data: { action: "delete" } });
+      Office.context.ui.messageParent(JSON.stringify({ status: "submitted", data: { action: "delete" } }));
       return;
     }
     if (dialogType === "logCall") {
@@ -133,7 +124,7 @@ const Dialog: React.FC = () => {
           opportunity: selectedOpportunity
         }
       };
-      triggerParentMessage(payload);
+      Office.context.ui.messageParent(JSON.stringify(payload));
       return;
     }
     const payload = {
@@ -144,33 +135,31 @@ const Dialog: React.FC = () => {
         opportunity: selectedOpportunity
       }
     };
-    triggerParentMessage(payload);
+    Office.context.ui.messageParent(JSON.stringify(payload));
   };
 
   if (dialogType === "pause") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
-          <div className="dialog-root pause-root">
-            <div className="pause-modal-header">
-              <div className="pause-icon-wrapper">
-                <Pause20Regular />
-              </div>
-              <h3 className="pause-modal-title">Pause Prospect ?</h3>
+        <div className="dialog-root pause-root">
+          <div className="pause-modal-header">
+            <div className="pause-icon-wrapper">
+              <Pause20Regular />
             </div>
-            <div className="pause-modal-body">
-              Are you sure you want to pause this prospect from all active sequences?
-            </div>
-            <div className="pause-modal-footer">
-              <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
-                No
-              </button>
-              <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
-                Yes
-              </button>
-            </div>
+            <h3 className="pause-modal-title">Pause Prospect ?</h3>
           </div>
-        </AnimatedModal>
+          <div className="pause-modal-body">
+            Are you sure you want to pause this prospect from all active sequences?
+          </div>
+          <div className="pause-modal-footer">
+            <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
+              No
+            </button>
+            <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
+              Yes
+            </button>
+          </div>
+        </div>
       </FluentProvider>
     );
   }
@@ -178,27 +167,25 @@ const Dialog: React.FC = () => {
   if (dialogType === "markFinished") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
-          <div className="dialog-root pause-root">
-            <div className="pause-modal-header">
-              <div className="pause-icon-wrapper finished-icon-wrapper">
-                <CheckmarkCircle20Regular />
-              </div>
-              <h3 className="pause-modal-title">Mark Prospect as Finished ?</h3>
+        <div className="dialog-root pause-root">
+          <div className="pause-modal-header">
+            <div className="pause-icon-wrapper finished-icon-wrapper">
+              <CheckmarkCircle20Regular />
             </div>
-            <div className="pause-modal-body">
-              Are you sure you want to mark this prospect as finished from all active active sequences?
-            </div>
-            <div className="pause-modal-footer">
-              <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
-                No
-              </button>
-              <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
-                Yes
-              </button>
-            </div>
+            <h3 className="pause-modal-title">Mark Prospect as Finished ?</h3>
           </div>
-        </AnimatedModal>
+          <div className="pause-modal-body">
+            Are you sure you want to mark this prospect as finished from all active active sequences?
+          </div>
+          <div className="pause-modal-footer">
+            <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
+              No
+            </button>
+            <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
+              Yes
+            </button>
+          </div>
+        </div>
       </FluentProvider>
     );
   }
@@ -206,27 +193,25 @@ const Dialog: React.FC = () => {
   if (dialogType === "optOut") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
-          <div className="dialog-root pause-root">
-            <div className="pause-modal-header">
-              <div className="pause-icon-wrapper optout-icon-wrapper">
-                <Prohibited20Regular />
-              </div>
-              <h3 className="pause-modal-title">Optout Prospect ?</h3>
+        <div className="dialog-root pause-root">
+          <div className="pause-modal-header">
+            <div className="pause-icon-wrapper optout-icon-wrapper">
+              <Prohibited20Regular />
             </div>
-            <div className="pause-modal-body">
-              Are you sure you want to opt out this prospect?
-            </div>
-            <div className="pause-modal-footer">
-              <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
-                No
-              </button>
-              <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
-                Yes
-              </button>
-            </div>
+            <h3 className="pause-modal-title">Optout Prospect ?</h3>
           </div>
-        </AnimatedModal>
+          <div className="pause-modal-body">
+            Are you sure you want to opt out this prospect?
+          </div>
+          <div className="pause-modal-footer">
+            <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
+              No
+            </button>
+            <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
+              Yes
+            </button>
+          </div>
+        </div>
       </FluentProvider>
     );
   }
@@ -234,27 +219,25 @@ const Dialog: React.FC = () => {
   if (dialogType === "delete") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
-          <div className="dialog-root pause-root">
-            <div className="pause-modal-header">
-              <div className="pause-icon-wrapper delete-icon-wrapper">
-                <Delete20Regular />
-              </div>
-              <h3 className="pause-modal-title">Delete Prospect ?</h3>
+        <div className="dialog-root pause-root">
+          <div className="pause-modal-header">
+            <div className="pause-icon-wrapper delete-icon-wrapper">
+              <Delete20Regular />
             </div>
-            <div className="pause-modal-body">
-              Are you sure you want to delete the Prospect?
-            </div>
-            <div className="pause-modal-footer">
-              <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
-                No
-              </button>
-              <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
-                Yes
-              </button>
-            </div>
+            <h3 className="pause-modal-title">Delete Prospect ?</h3>
           </div>
-        </AnimatedModal>
+          <div className="pause-modal-body">
+            Are you sure you want to delete the Prospect?
+          </div>
+          <div className="pause-modal-footer">
+            <button className="modal-btn modal-btn-secondary" onClick={handleClose}>
+              No
+            </button>
+            <button className="modal-btn modal-btn-primary" onClick={handleSubmit}>
+              Yes
+            </button>
+          </div>
+        </div>
       </FluentProvider>
     );
 
@@ -263,133 +246,41 @@ const Dialog: React.FC = () => {
   if (dialogType === "logCall") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
-          <div className="dialog-root">
-            <div className="title-container">
-              <div className="title-text" style={{ fontSize: "16px", fontWeight: 600 }}>
-                Log Call
-              </div>
-              <div style={{ cursor: "pointer" }} onClick={handleClose}>
-                <Dismiss24Regular />
-              </div>
-            </div>
-
-            <div className="content-container">
-              {/* Log Call Notes */}
-              <div className="field-group">
-                <Label className="field-label">Log Call</Label>
-                <Textarea
-                  placeholder="Your call notes here"
-                  value={callNotes}
-                  onChange={(_e, data) => setCallNotes(data.value)}
-                  rows={4}
-                  style={{ minHeight: "80px" }}
-                />
-              </div>
-
-              {/* Call Disposition */}
-              <div className="field-group">
-                <Label className="field-label">Call Disposition</Label>
-                <Dropdown
-                  className="dropdown-full-width"
-                  placeholder="Select"
-                  value={callDisposition === "Select" ? undefined : callDisposition}
-                  onOptionSelect={(_e, data) => setCallDisposition(data.optionText || "")}
-                >
-                  {dispositions.map((disp) => (
-                    <Option key={disp} text={disp}>
-                      {disp}
-                    </Option>
-                  ))}
-                </Dropdown>
-              </div>
-
-              {/* Select Opportunity */}
-              <div className="field-group">
-                <Label className="field-label">Select Opportunity</Label>
-                <Dropdown
-                  className="dropdown-full-width"
-                  value={selectedOpportunity}
-                  onOptionSelect={(_e, data) => setSelectedOpportunity(data.optionText || "")}
-                >
-                  <Option key="no-opp" text="No Opportunity">No Opportunity</Option>
-                  {opportunities.map((opp) => (
-                    <Option key={opp} text={opp}>
-                      {opp}
-                    </Option>
-                  ))}
-                </Dropdown>
-              </div>
-            </div>
-
-            <div className="actions-container">
-              <Button appearance="subtle" onClick={handleClose} className="cancel-button">
-                Cancel
-              </Button>
-              <Button appearance="primary" className="submit-button" onClick={handleSubmit}>
-                Log
-              </Button>
-            </div>
-          </div>
-        </AnimatedModal>
-      </FluentProvider>
-    );
-  }
-
-  return (
-    <FluentProvider theme={webLightTheme}>
-      <AnimatedModal isOpen={isOpen} onDismiss={handleClose}>
         <div className="dialog-root">
-          {/* Header */}
           <div className="title-container">
-            <div className="title-text">
-              <div className="icon-container">
-                <FontAwesomeIcon icon={faPaperPlane} className="icon-paperplane" />
-              </div>
-              Add to Sequence
+            <div className="title-text" style={{ fontSize: "16px", fontWeight: 600 }}>
+              Log Call
             </div>
-            {/* Only show close button if not in a dialog that has its own chrome, 
-                          but standard is to handle inside content or rely on window frame. 
-                          We keep it for consistency with design provided. */}
-
+            <div style={{ cursor: "pointer" }} onClick={handleClose}>
+              <Dismiss24Regular />
+            </div>
           </div>
 
           <div className="content-container">
-            {/* Search Sequences */}
+            {/* Log Call Notes */}
             <div className="field-group">
-              <Combobox
-                placeholder={isLoadingSequences ? "Loading sequences..." : "Search Sequences"}
-                className="dropdown-full-width"
-                onOptionSelect={(_e, data) => setSelectedSequence(data.optionText || "")}
-                value={selectedSequence}
-                onChange={(e) => setSelectedSequence(e.target.value)}
-                disabled={isLoadingSequences}
-              >
-                {sequences.map((seq) => (
-                  <Option key={seq.id} text={seq.name}>
-                    {seq.name}
-                  </Option>
-                ))}
-              </Combobox>
-              {sequenceError && <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>{sequenceError}</div>}
-              {!isLoadingSequences && !sequenceError && sequences.length === 0 && (
-                <div style={{ color: "gray", fontSize: "12px", marginTop: "4px" }}>No sequences found</div>
-              )}
+              <Label className="field-label">Log Call</Label>
+              <Textarea
+                placeholder="Your call notes here"
+                value={callNotes}
+                onChange={(_e, data) => setCallNotes(data.value)}
+                rows={4}
+                style={{ minHeight: "80px" }}
+              />
             </div>
 
-            {/* Send Email From */}
+            {/* Call Disposition */}
             <div className="field-group">
-              <Label className="field-label">Send Email From</Label>
+              <Label className="field-label">Call Disposition</Label>
               <Dropdown
                 className="dropdown-full-width"
-                value={selectedSender}
-                placeholder={isLoadingSenders ? "Loading..." : "Select sender"}
-                disabled={isLoadingSenders}
-                onOptionSelect={(_e, data) => setSelectedSender(data.optionText || "")}
+                placeholder="Select"
+                value={callDisposition === "Select" ? undefined : callDisposition}
+                onOptionSelect={(_e, data) => setCallDisposition(data.optionText || "")}
               >
-                {senders.map((sender) => (
-                  <Option key={sender.id} text={sender.email}>
-                    {sender.email}{sender.isDefault ? " (Default)" : ""}
+                {dispositions.map((disp) => (
+                  <Option key={disp} text={disp}>
+                    {disp}
                   </Option>
                 ))}
               </Dropdown>
@@ -418,11 +309,98 @@ const Dialog: React.FC = () => {
               Cancel
             </Button>
             <Button appearance="primary" className="submit-button" onClick={handleSubmit}>
-              Submit
+              Log
             </Button>
           </div>
         </div>
-      </AnimatedModal>
+      </FluentProvider>
+    );
+  }
+
+  return (
+    <FluentProvider theme={webLightTheme}>
+      <div className="dialog-root">
+        {/* Header */}
+        <div className="title-container">
+          <div className="title-text">
+            <div className="icon-container">
+              <FontAwesomeIcon icon={faPaperPlane} className="icon-paperplane" />
+            </div>
+            Add to Sequence
+          </div>
+          {/* Only show close button if not in a dialog that has its own chrome, 
+                        but standard is to handle inside content or rely on window frame. 
+                        We keep it for consistency with design provided. */}
+
+        </div>
+
+        <div className="content-container">
+          {/* Search Sequences */}
+          <div className="field-group">
+            <Combobox
+              placeholder={isLoadingSequences ? "Loading sequences..." : "Search Sequences"}
+              className="dropdown-full-width"
+              onOptionSelect={(_e, data) => setSelectedSequence(data.optionText || "")}
+              value={selectedSequence}
+              onChange={(e) => setSelectedSequence(e.target.value)}
+              disabled={isLoadingSequences}
+            >
+              {sequences.map((seq) => (
+                <Option key={seq.id} text={seq.name}>
+                  {seq.name}
+                </Option>
+              ))}
+            </Combobox>
+            {sequenceError && <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>{sequenceError}</div>}
+            {!isLoadingSequences && !sequenceError && sequences.length === 0 && (
+              <div style={{ color: "gray", fontSize: "12px", marginTop: "4px" }}>No sequences found</div>
+            )}
+          </div>
+
+          {/* Send Email From */}
+          <div className="field-group">
+            <Label className="field-label">Send Email From</Label>
+            <Dropdown
+              className="dropdown-full-width"
+              value={selectedSender}
+              placeholder={isLoadingSenders ? "Loading..." : "Select sender"}
+              disabled={isLoadingSenders}
+              onOptionSelect={(_e, data) => setSelectedSender(data.optionText || "")}
+            >
+              {senders.map((sender) => (
+                <Option key={sender.id} text={sender.email}>
+                  {sender.email}{sender.isDefault ? " (Default)" : ""}
+                </Option>
+              ))}
+            </Dropdown>
+          </div>
+
+          {/* Select Opportunity */}
+          <div className="field-group">
+            <Label className="field-label">Select Opportunity</Label>
+            <Dropdown
+              className="dropdown-full-width"
+              value={selectedOpportunity}
+              onOptionSelect={(_e, data) => setSelectedOpportunity(data.optionText || "")}
+            >
+              {opportunities.map((opp) => (
+                <Option key={opp} text={opp}>
+                  {opp}
+                </Option>
+              ))}
+            </Dropdown>
+          </div>
+        </div>
+
+        <div className="actions-container">
+          <Button appearance="subtle" onClick={handleClose} className="cancel-button">
+            Cancel
+          </Button>
+          <Button appearance="primary" className="submit-button" onClick={handleSubmit}>
+            Submit
+          </Button>
+        </div>
+      </div>
     </FluentProvider>
   );
 };

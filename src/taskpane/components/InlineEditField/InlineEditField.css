@@ -65,15 +65,11 @@
 }
 
 .field-edit-icon {
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.2s ease;
     display: flex;
     align-items: center;
     flex-shrink: 0;
-}
-
-.field-edit-icon.visible {
-    opacity: 1;
 }
 
 .field-edit-icon-wrapper {
@@ -93,9 +89,6 @@
 .field-container:hover .field-edit-icon-wrapper,
 .field-display-row:focus-within .field-edit-icon-wrapper {
     background-color: var(--colorNeutralBackground1Hover);
-}
-
-.field-edit-icon-wrapper.visible {
     opacity: 1;
 }
 
@@ -140,10 +133,6 @@
 
 .field-container:hover .field-copy-fab,
 .field-container:focus-within .field-copy-fab {
-    opacity: 1;
-}
-
-.field-copy-fab.visible {
     opacity: 1;
 }
 

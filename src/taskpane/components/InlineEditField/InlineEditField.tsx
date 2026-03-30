@@ -70,12 +70,8 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
             console.error("Fallback copy failed:", err);
         }
     };
-    const [isHovered, setIsHovered] = useState(false);
-    const [isFocusedWithin, setIsFocusedWithin] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const showIcon = isHovered || isFocusedWithin || isEditing || !!overlayComponent;
 
     const handleContainerBlur = useCallback(
         (e: React.FocusEvent<HTMLDivElement>) => {
@@ -86,7 +82,6 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                     containerRef.current &&
                     !containerRef.current.contains(document.activeElement)
                 ) {
-                    setIsFocusedWithin(false);
                     if (isEditing) {
                         onSave();
                     }
@@ -102,15 +97,12 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
             clearTimeout(blurTimeoutRef.current);
             blurTimeoutRef.current = null;
         }
-        setIsFocusedWithin(true);
     }, []);
 
     return (
         <div
             className="field-container"
             ref={containerRef}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             onFocus={handleContainerFocus}
             onBlur={handleContainerBlur}
         >
@@ -119,7 +111,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                 <Text className="field-label">{label}</Text>
                 {copyValue && (
                     <div
-                        className={`field-copy-fab ${showIcon ? "visible" : ""}`}
+                        className="field-copy-fab"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleCopy();
@@ -144,7 +136,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                     {editComponent}
                     <Button
                         appearance="subtle"
-                        className={`field-edit-icon ${showIcon ? "visible" : ""}`}
+                        className="field-edit-icon"
                         icon={<Checkmark20Regular className="check-icon" />}
                         onClick={(e) => {
                             e.stopPropagation();
@@ -172,7 +164,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
                         </span>
                     </div>
                     <div
-                        className={`field-edit-icon-wrapper ${showIcon ? "visible" : ""}`}
+                        className="field-edit-icon-wrapper"
                         style={overlayComponent ? { position: "relative" } : undefined}
                         onClick={(e) => {
                             if (overlayComponent) {
