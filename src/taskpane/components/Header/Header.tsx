@@ -28,22 +28,25 @@ const Header: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = React.useState<OPAddInComponentType | null>(
     OPAddInComponentType.ProspectSectionComponent
   );
+  const [selectedComponentName, setSelectedComponentName] =
+    React.useState<String>("Prospect Details");
 
   const handleMenuSelect = (component: OPAddInComponentType) => {
+    console.log(component);
     setSelectedComponent(component);
+    if (component === OPAddInComponentType.ProspectSectionComponent) {
+      setSelectedComponentName("Prospect Details");
+    }
+    // else if (component === OPAddInComponentType.TaskComponent) {
+    //   setSelectedComponentName("Task ");
+    // }
     setOpen(false); // close drawer
   };
 
   return (
     <>
       <div className="header-container">
-        <div className="logo-container">
-          <img
-            src="https://cdn.outplayhq.com/img/login-logo.png"
-            alt="Outplay Logo"
-            className="logo-image"
-          />
-        </div>
+        <div className="logo-container">{selectedComponentName}</div>
 
         <span className="menu-icon" onClick={() => setOpen(true)} role="button">
           <Navigation24Regular />

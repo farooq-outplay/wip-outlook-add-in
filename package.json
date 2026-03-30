@@ -40,6 +40,7 @@
     "react-dom": "^18.2.0",
     "react-quill": "^2.0.0",
     "react-timezone-select": "^3.3.2",
+    "react-toastify": "^11.0.5",
     "regenerator-runtime": "^0.14.1",
     "scheduler": "^0.23.0"
   },

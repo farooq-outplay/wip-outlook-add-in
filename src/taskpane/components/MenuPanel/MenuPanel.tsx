@@ -19,14 +19,14 @@ const MenuPanel: React.FC<MenuPanelProps> = ({ onClose, onSelect }) => {
         onClick={() => onSelect(OPAddInComponentType.ProspectSectionComponent)}
         style={{ cursor: "pointer", padding: "10px" }}
       >
-        Open Component A
+        Prospect Details
       </div>
-      <div
+      {/* <div
         onClick={() => onSelect(OPAddInComponentType.TaskComponent)}
         style={{ cursor: "pointer", padding: "10px" }}
       >
         Open Component B
-      </div>
+      </div> */}
     </div>
   );
 };

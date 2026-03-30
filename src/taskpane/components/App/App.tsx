@@ -7,6 +7,7 @@ import { getToken } from "../../../utility/authStorage";
 import Login from "../Login/Login";
 import ReadView from "../ReadView/ReadView";
 import { useAppContext } from "../../../utility/store/AppContext";
+import { ToastContainer } from "react-toastify";
 
 const App: React.FC<{}> = () => {
   const { mode } = useAppContext();
@@ -41,6 +42,7 @@ const App: React.FC<{}> = () => {
       ) : (
         <Login onLoginSuccess={setAccessToken} />
       )}
+      <ToastContainer />
     </div>
   );
 };
