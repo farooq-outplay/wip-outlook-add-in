@@ -18,7 +18,6 @@ import {
   Clock20Regular,
   Search20Regular,
   Pulse20Regular,
-  Share20Regular,
   Building20Regular,
   Dismiss20Regular,
   Edit20Regular,
@@ -41,6 +40,7 @@ import MoreOptionsMenu from "../MoreOptionsMenu/MoreOptionsMenu";
 import PhoneInputWithCountrySelector from "../PhoneInputWithCountrySelector/PhoneInputWithCountrySelector";
 import { updateProspect, getProspectStages, getTimezones } from "../../../utility/api/prospectService";
 import InlineEditField from "../InlineEditField/InlineEditField";
+import TimezoneDropdown from "../TimezoneDropdown/TimezoneDropdown";
 
 interface ProspectSectionProps {
   prospect: any;
@@ -78,7 +78,17 @@ const formatDate = (dateString?: string) => {
   if (isNaN(date.getTime())) {
     return dateString;
   }
-  return date.toLocaleDateString();
+  return date.toISOString().split("T")[0];
+};
+
+const formatSystemDate = (dateString?: string) => {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return dateString;
+  }
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`;
 };
 
 /** Convert an ISO/date string to YYYY-MM-DD for <input type="date"> */
@@ -555,27 +565,13 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     // ── Timezone (fieldoriginid = 6) ──
     if (field.fieldoriginid === 6) {
       return (
-        <Dropdown
+        <TimezoneDropdown
+          options={timezoneOptions}
+          value={currentValue}
+          onChange={onChange}
           placeholder="Search timezone..."
-          value={
-            timezoneOptions.find((opt) => opt.key === currentValue)?.text ||
-            currentValue ||
-            ""
-          }
-          selectedOptions={currentValue ? [currentValue] : []}
-          onOptionSelect={(_e: any, data: any) => {
-            if (data.optionValue) {
-              onChange(data.optionValue);
-            }
-          }}
-          className="input-full-width field-select"
-        >
-          {timezoneOptions.map((opt) => (
-            <Option key={opt.key} value={opt.key}>
-              {opt.text}
-            </Option>
-          ))}
-        </Dropdown>
+          className="input-full-width"
+        />
       );
     }
 
@@ -711,7 +707,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
+getTimezones
   const timezoneLabel = useMemo(() => {
     if (!rawIana) return null;
     try {
@@ -753,7 +749,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
     }
   }, [rawIana, currentTime]);
 
-  const openAddTaskDialog = () => {
+  const openAddTaskDialog = (taskType: string = 'email') => {
     if (!prospect?.prospectid) {
       console.error("Cannot open task dialog: prospectid is missing");
       return;
@@ -761,9 +757,12 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
     console.log("Opening task dialog for prospectid:", prospect.prospectid);
 
+    const safeTaskType = (taskType || '').toLowerCase().trim();
+    const taskDialogHeight = ['linkedin', 'twitter', 'general'].includes(safeTaskType) ? 78 : 62;
+
     Office.context.ui.displayDialogAsync(
-      window.location.origin + "/dialog.html?dialog=addTask&prospectid=" + prospect.prospectid,
-      { height: 85, width: 40, displayInIframe: true },
+      window.location.origin + "/dialog.html?dialog=addTask&prospectid=" + prospect.prospectid + "&taskType=" + safeTaskType,
+      { height: taskDialogHeight, width: 30, displayInIframe: true, promptBeforeOpen: false },
       (asyncResult) => {
         if (asyncResult.status === Office.AsyncResultStatus.Failed) {
           console.error("Dialog failed to open:", asyncResult.error.message);
@@ -886,7 +885,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faEnvelope} size="sm" className="icon-envelope" />}
             className="action-button"
-            onClick={() => {}}
+            onClick={() => { }}
           />
         </Tooltip>
         <Tooltip content="Call" relationship="label">
@@ -894,7 +893,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faPhone} size="sm" className="icon-phone" />}
             className="action-button"
-            onClick={() => {}}
+            onClick={() => { }}
           />
         </Tooltip>
         <Tooltip content="Text Message" relationship="label">
@@ -925,7 +924,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
             appearance="subtle"
             icon={<FontAwesomeIcon icon={faListCheck} size="sm" className="icon-listcheck" />}
             className="action-button"
-            onClick={openAddTaskDialog}
+            onClick={() => openAddTaskDialog()}
           />
         </Tooltip>
         <MoreOptionsMenu
@@ -947,7 +946,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
       {/* Status pills */}
       <div className="status-row">
-        <Button appearance="secondary" className="pill-button" onClick={() => {}}>
+        <Button appearance="secondary" className="pill-button" onClick={() => { }}>
           Bounced
         </Button>
         <div style={{ position: "relative", display: "inline-block" }}>
@@ -1057,35 +1056,74 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
         ) : (
           <>
             <div className="social-icons">
-              <Tooltip content="Facebook" relationship="label">
-                <Button
-                  appearance="subtle"
-                  className="social-button"
-                  onClick={() => {}}
-                  aria-label="Facebook"
-                >
-                  <span className="social-text social-text-bold">f</span>
-                </Button>
-              </Tooltip>
-              <Tooltip content="Share" relationship="label">
-                <Button
-                  appearance="subtle"
-                  icon={<Share20Regular />}
-                  className="social-button"
-                  onClick={() => {}}
-                  aria-label="Share"
-                />
-              </Tooltip>
-              <Tooltip content="Twitter" relationship="label">
-                <Button
-                  appearance="subtle"
-                  className="social-button"
-                  onClick={() => {}}
-                  aria-label="Twitter"
-                >
-                  <span className="social-text">𝕏</span>
-                </Button>
-              </Tooltip>
+              {/* Share / LinkedIn icon */}
+              {(() => {
+                const linkedinField = prospect?.prospectFieldsList?.find(
+                  (f: any) => f.fieldname?.toLowerCase() === "linkedin"
+                );
+                const linkedinUrl = linkedinField?.fieldtext || linkedinField?.value || "";
+                const isActive = Boolean(linkedinUrl);
+                return (
+                  <span
+                    className={`social-icon-btn${isActive ? " social-icon-btn--active" : " social-icon-btn--inactive"}`}
+                    onClick={() => isActive && window.open(linkedinUrl.startsWith("http") ? linkedinUrl : `https://${linkedinUrl}`, "_blank")}
+                    aria-label="LinkedIn"
+                    role="button"
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    {/* Share/export icon SVG */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                );
+              })()}
+
+              {/* Facebook icon */}
+              {(() => {
+                const fbField = prospect?.prospectFieldsList?.find(
+                  (f: any) => f.fieldname?.toLowerCase() === "facebook"
+                );
+                const fbUrl = fbField?.fieldtext || fbField?.value || "";
+                const isActive = Boolean(fbUrl);
+                return (
+                  <span
+                    className={`social-icon-btn${isActive ? " social-icon-btn--active social-icon-btn--facebook" : " social-icon-btn--inactive"}`}
+                    onClick={() => isActive && window.open(fbUrl.startsWith("http") ? fbUrl : `https://${fbUrl}`, "_blank")}
+                    aria-label="Facebook"
+                    role="button"
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    {/* Facebook "f" SVG */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2Z" />
+                    </svg>
+                  </span>
+                );
+              })()}
+
+              {/* Twitter / X icon */}
+              {(() => {
+                const twField = prospect?.prospectFieldsList?.find(
+                  (f: any) => f.fieldname?.toLowerCase() === "twitter"
+                );
+                const twUrl = twField?.fieldtext || twField?.value || "";
+                const isActive = Boolean(twUrl);
+                return (
+                  <span
+                    className={`social-icon-btn${isActive ? " social-icon-btn--active social-icon-btn--twitter" : " social-icon-btn--inactive"}`}
+                    onClick={() => isActive && window.open(twUrl.startsWith("http") ? twUrl : `https://${twUrl}`, "_blank")}
+                    aria-label="Twitter/X"
+                    role="button"
+                    tabIndex={isActive ? 0 : -1}
+                  >
+                    {/* Twitter bird SVG */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M23.953 4.57a10 10 0 0 1-2.825.775 4.958 4.958 0 0 0 2.163-2.723 10.054 10.054 0 0 1-3.127 1.184 4.92 4.92 0 0 0-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 0 0-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 0 1-2.228-.616v.06a4.923 4.923 0 0 0 3.946 4.827 4.996 4.996 0 0 1-2.212.085 4.936 4.936 0 0 0 4.604 3.417 9.867 9.867 0 0 1-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 0 0 7.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0 0 24 4.59z" />
+                    </svg>
+                  </span>
+                );
+              })()}
             </div>
             <Tooltip content="Search" relationship="label">
               <Button
@@ -1134,6 +1172,8 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           />
         </Tooltip>
       </div>
+
+      <Divider className="divider" />
 
       {/* Tab Content */}
       <div className="scrollable-content">
@@ -1282,11 +1322,40 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                 };
 
                 // ── All other system fields: generic InlineEditField ──
+                const readDisplayValue = (() => {
+                  if (field.fieldoriginid === 6 && currentValue) {
+                    try {
+                      const now = new Date();
+                      const offsetParts = new Intl.DateTimeFormat("en-US", {
+                        timeZone: String(currentValue),
+                        timeZoneName: "shortOffset",
+                      })
+                        .formatToParts(now)
+                        .find((p) => p.type === "timeZoneName")?.value ?? "GMT";
+
+                      let offset = "(UTC+00:00)";
+                      if (offsetParts !== "GMT") {
+                        const m = offsetParts.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+                        if (m) {
+                          const sign = m[1];
+                          const hh = m[2].padStart(2, "0");
+                          const mm = (m[3] ?? "00").padStart(2, "0");
+                          offset = `(UTC${sign}${hh}:${mm})`;
+                        }
+                      }
+                      return `${offset} ${currentValue}`;
+                    } catch {
+                      return String(currentValue);
+                    }
+                  }
+                  return getDisplayValue(field, String(currentValue));
+                })();
+
                 return (
                   <InlineEditField
                     key={field.fieldoriginid}
                     label={field.fieldname}
-                    value={getDisplayValue(field, String(currentValue))}
+                    value={readDisplayValue}
                     copyValue={String(currentValue)}
                     isEditing={isEditing}
                     onEdit={() => handleEditStart(field.fieldoriginid, String(currentValue))}
@@ -1399,7 +1468,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
                       <Text className="field-label">{sysField.label}</Text>
                       <div className="field-display-row">
                         <div className="field-value-box">
-                          <span className="field-value-text">{formatDate(sysField.value)}</span>
+                          <span className="field-value-text">{formatSystemDate(sysField.value)}</span>
                         </div>
                       </div>
                     </div>

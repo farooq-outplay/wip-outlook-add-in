@@ -15,7 +15,7 @@ const AddToSequenceModal: React.FC<AddToSequenceModalProps> = ({ isOpen, onClose
 
             Office.context.ui.displayDialogAsync(
                 url,
-                { height: 60, width: 40, displayInIframe: true },
+                { height: 40, width: 32, displayInIframe: true },
                 (asyncResult) => {
                     if (asyncResult.status === Office.AsyncResultStatus.Failed) {
                         console.error("Failed to open dialog: " + asyncResult.error.message);

@@ -7,7 +7,7 @@
 
 .field-label {
     font-size: var(--fontSizeBase200);
-    font-weight: var(--fontWeightSemibold);
+    font-weight: bold;
     color: var(--colorNeutralForeground1);
 }
 

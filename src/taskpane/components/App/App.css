@@ -1,16 +1,24 @@
 .app-container {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  overflow-x: hidden;
+  /* explicitly block horizontal scroll */
 }
 
 .card {
   padding: 0px 5px 0px 5px;
+  max-width: 100%;
+  /* prevent card from overflowing */
+  box-sizing: border-box;
 }
 
 /* Entire scrollbar */
 ::-webkit-scrollbar {
-  width: 2px; /* decrease width */
-  height: 3px; /* for horizontal scrollbar */
+  width: 2px;
+  height: 0px;
+  /* hide horizontal scrollbar entirely */
 }
 
 /* Track (background) */

@@ -5,14 +5,17 @@
   background-color: var(--colorNeutralBackground1);
   cursor: default;
   user-select: none;
-  overflow: visible;
+  overflow: hidden;
   box-sizing: border-box;
   justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
 }
 
 .scrollable-content {
-  height: 60vh;
-  overflow: hidden auto;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .close-button {
@@ -148,14 +151,34 @@
   align-items: center;
 }
 
-.social-button {
-  min-width: 24px;
+.social-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
   height: 24px;
-  padding: 0;
   border-radius: 50%;
-  color: var(--colorNeutralForeground3);
-  background-color: transparent;
+  border: none;
+  background: #f7f7f7;
+  padding: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  color: #c4c4c4;
+}
+
+.social-icon-btn--inactive {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.social-icon-btn--active {
   cursor: pointer;
+}
+
+.social-icon-btn--active.social-icon-btn--twitter:hover {
+  background: #1DA1F2;
+  color: #fff;
 }
 
 .search-button {
@@ -219,7 +242,7 @@
 
 .field-label {
   font-size: var(--fontSizeBase200);
-  font-weight: var(--fontWeightSemibold);
+  font-weight: bold;
   color: var(--colorNeutralForeground1);
 }
 
@@ -363,14 +386,6 @@
   color: #25d366;
 }
 
-.social-text {
-  font-size: 11px;
-  line-height: 1;
-}
-
-.social-text-bold {
-  font-weight: 600;
-}
 
 /* Tab Active States */
 .utility-button.active .tab-icon,

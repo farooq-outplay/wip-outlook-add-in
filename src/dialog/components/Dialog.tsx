@@ -177,8 +177,9 @@ const Dialog: React.FC = () => {
   if (dialogType === "pause") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <div className="dialog-root pause-root">
-          <div className="pause-modal-header">
+        <div className="dialog-wrapper">
+          <div className="dialog-root pause-root">
+            <div className="pause-modal-header">
             <div className="pause-icon-wrapper">
               <Pause20Regular />
             </div>
@@ -195,6 +196,7 @@ const Dialog: React.FC = () => {
               Yes
             </button>
           </div>
+          </div>
         </div>
       </FluentProvider>
     );
@@ -203,8 +205,9 @@ const Dialog: React.FC = () => {
   if (dialogType === "markFinished") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <div className="dialog-root pause-root">
-          <div className="pause-modal-header">
+        <div className="dialog-wrapper">
+          <div className="dialog-root pause-root">
+            <div className="pause-modal-header">
             <div className="pause-icon-wrapper finished-icon-wrapper">
               <CheckmarkCircle20Regular />
             </div>
@@ -221,6 +224,7 @@ const Dialog: React.FC = () => {
               Yes
             </button>
           </div>
+          </div>
         </div>
       </FluentProvider>
     );
@@ -229,8 +233,9 @@ const Dialog: React.FC = () => {
   if (dialogType === "optOut") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <div className="dialog-root pause-root">
-          <div className="pause-modal-header">
+        <div className="dialog-wrapper">
+          <div className="dialog-root pause-root">
+            <div className="pause-modal-header">
             <div className="pause-icon-wrapper optout-icon-wrapper">
               <Prohibited20Regular />
             </div>
@@ -247,6 +252,7 @@ const Dialog: React.FC = () => {
               Yes
             </button>
           </div>
+          </div>
         </div>
       </FluentProvider>
     );
@@ -255,8 +261,9 @@ const Dialog: React.FC = () => {
   if (dialogType === "delete") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <div className="dialog-root pause-root">
-          <div className="pause-modal-header">
+        <div className="dialog-wrapper">
+          <div className="dialog-root pause-root">
+            <div className="pause-modal-header">
             <div className="pause-icon-wrapper delete-icon-wrapper">
               <Delete20Regular />
             </div>
@@ -273,6 +280,7 @@ const Dialog: React.FC = () => {
               Yes
             </button>
           </div>
+          </div>
         </div>
       </FluentProvider>
     );
@@ -282,8 +290,9 @@ const Dialog: React.FC = () => {
   if (dialogType === "logCall") {
     return (
       <FluentProvider theme={webLightTheme}>
-        <div className="dialog-root">
-          <div className="title-container">
+        <div className="dialog-wrapper">
+          <div className="dialog-root">
+            <div className="title-container">
             <div className="title-text" style={{ fontSize: "16px", fontWeight: 600 }}>
               Log Call
             </div>
@@ -352,6 +361,7 @@ const Dialog: React.FC = () => {
               Log
             </Button>
           </div>
+          </div>
         </div>
       </FluentProvider>
     );
@@ -359,8 +369,9 @@ const Dialog: React.FC = () => {
 
   return (
     <FluentProvider theme={webLightTheme}>
-      <div className="dialog-root">
-        {/* Header */}
+      <div className="dialog-wrapper">
+        <div className="dialog-root">
+          {/* Header */}
         <div className="title-container">
           <div className="title-text">
             <div className="icon-container">
@@ -532,6 +543,7 @@ const Dialog: React.FC = () => {
           <Button appearance="primary" className="submit-button" onClick={handleSubmit}>
             Submit
           </Button>
+        </div>
         </div>
       </div>
     </FluentProvider>

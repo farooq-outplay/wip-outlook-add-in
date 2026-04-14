@@ -19,10 +19,19 @@ body {
   width: 0 !important;
 }
 
+.dialog-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dialog-root {
-  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+  margin: auto;
+  padding: 24px;
   background-color: var(--colorNeutralBackground1);
-  height: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

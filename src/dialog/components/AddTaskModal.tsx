@@ -60,7 +60,8 @@ const AddTaskModal: React.FC = () => {
   const [time, setTime] = useState(_currentTime);
   const [assignTo, setAssignTo] = useState("Outplaytest22");
   const [priority, setPriority] = useState("High");
-  const [taskType, setTaskType] = useState<TaskType>("email");
+  const initialTaskType = new URLSearchParams(window.location.search).get("taskType") as TaskType || "email";
+  const [taskType, setTaskType] = useState<TaskType>(initialTaskType);
   const [actionParam, setActionParam] = useState("View Profile");
   const [taskName, setTaskName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -312,10 +313,10 @@ const AddTaskModal: React.FC = () => {
                 <Option>User 2</Option>
               </Dropdown>
             </div>
-            <div className="col-flex">
+            <div className="col-flex col-flex-priority">
               <Label className="field-label">Priority</Label>
               <Dropdown
-                className="input-control"
+                className="input-control input-control-priority"
                 value={priority}
                 onOptionSelect={(_e, data) => setPriority(data.optionText || "")}
               >
