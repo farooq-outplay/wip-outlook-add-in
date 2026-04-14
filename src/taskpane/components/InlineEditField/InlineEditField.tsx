@@ -33,7 +33,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
         // Primary: modern Clipboard API
         if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
             navigator.clipboard.writeText(copyValue).then(() => {
-                console.log("Copied via Clipboard API:", copyValue);
+                
             }).catch(() => {
                 // Clipboard API failed (e.g. no focus / permission denied in Office iframe) — use fallback
                 copyViaTextarea(copyValue);
@@ -63,8 +63,6 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
             document.body.removeChild(textarea);
             if (!success) {
                 console.error("execCommand copy returned false");
-            } else {
-                console.log("Copied via execCommand:", text);
             }
         } catch (err) {
             console.error("Fallback copy failed:", err);

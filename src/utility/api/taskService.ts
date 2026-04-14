@@ -16,17 +16,13 @@ export const createTask = async (
     payload: CreateTaskPayload
 ): Promise<ApiResult<any>> => {
     try {
-        console.log("createTask request:", { prospectId, payload });
-
         const response = await mobileApiClient<any>(
-            `/api/v1/cexttask/create?prospectid=${prospectId}`,
+            `/api/v1/cexttask/create?prospectid=${encodeURIComponent(prospectId)}`,
             {
                 method: "POST",
                 body: payload,
             }
         );
-
-        console.log("createTask response:", response);
 
         if (!response.success && response.status === 500) {
             return {

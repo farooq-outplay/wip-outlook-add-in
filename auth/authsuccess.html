@@ -10,11 +10,7 @@
     <script>
         // 🔴 REQUIRED for Outlook dialogs
         Office.initialize = function () {
-            console.log("Office.initialize called");
-
             const token = new URLSearchParams(window.location.search).get("code");
-
-            console.log("Token:", token);
 
             if (!token) {
                 Office.context.ui.messageParent(

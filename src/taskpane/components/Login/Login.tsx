@@ -29,7 +29,6 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
         setAuthDialog(dialog);
 
         dialog.addEventHandler(Office.EventType.DialogMessageReceived, async (arg) => {
-          console.log("Dialog message received:", arg);
           if ("message" in arg) {
             try {
               const data = JSON.parse(arg.message);

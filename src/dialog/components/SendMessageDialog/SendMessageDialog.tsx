@@ -143,7 +143,7 @@ const SendMessageDialog: React.FC = () => {
                         <label className="sms-label">Send From</label>
                         <div className="sms-send-from">
                             <span className="sms-send-from-icon">✈</span>
-                            <span className="sms-send-from-number">+12512612805</span>
+                            <span className="sms-send-from-number">(select number)</span>
                             <span className="sms-send-from-chevron">▾</span>
                         </div>
                     </div>

@@ -221,7 +221,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
 
     getTimezones()
       .then((res) => {
-        console.log("getTimezones raw response:", res);
 
         // mobileApiClient wraps every response as { success, data }
         // The actual payload lives in res.data (or res itself if raw array)
@@ -267,7 +266,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
   useEffect(() => {
     getProspectStages()
       .then((res) => {
-        console.log("getProspectStages raw response:", res);
         if (res && res.success && res.data) {
           const list = Array.isArray(res.data)
             ? res.data
@@ -305,9 +303,7 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
           value: String(stageId),
         };
 
-        console.log("updateProspect stage payload:", payload);
         const response = await updateProspect(payload);
-        console.log("updateProspect stage response:", response);
 
         if (response && response.success === false) {
           console.error("Stage update failed:", response.error);
@@ -633,8 +629,6 @@ const ProspectSection: React.FC<ProspectSectionProps> = ({
       timezone: null,
     };
 
-    console.log("updateProspect payload:", payload);
-
     // 3. Keep optimistic local state update logic unchanged
 
     // Always try to update in prospectFieldsList if the field exists there (handles both custom and system fields in the list)
@@ -755,7 +749,6 @@ getTimezones
       return;
     }
 
-    console.log("Opening task dialog for prospectid:", prospect.prospectid);
 
     const safeTaskType = (taskType || '').toLowerCase().trim();
     const taskDialogHeight = ['linkedin', 'twitter', 'general'].includes(safeTaskType) ? 78 : 62;
@@ -773,7 +766,6 @@ getTimezones
             if (message.status === "closed") {
               dialog.close();
             } else if (message.status === "saveTask") {
-              console.log("Task Saved from Dialog:", message.data);
               dialog.close();
             }
           });
@@ -816,7 +808,6 @@ getTimezones
             if (message.status === "closed") {
               dialog.close();
             } else if (message.status === "submitted") {
-              console.log("Sending SMS:", message.data);
               dialog.close();
             }
           });
@@ -933,14 +924,13 @@ getTimezones
           onOptStatusChange={(optedOut) => {
             setProspect((prev: any) => ({ ...prev, optedout: optedOut }));
           }}
-          onPause={() => console.log("Pause clicked")}
-          onMarkFinished={() => console.log("Mark as Finished clicked")}
-          onOptOut={() => console.log("Opt-out clicked")}
+          onPause={() => {}}
+          onMarkFinished={() => {}}
+          onOptOut={() => {}}
           onDelete={() => {
-            console.log("Delete clicked");
             if (onClose) onClose();
           }}
-          onLogCall={() => console.log("Log Call clicked")}
+          onLogCall={() => {}}
         />
       </div>
 
@@ -1244,8 +1234,6 @@ getTimezones
                                     ianatimezone: null,
                                     timezone: null,
                                   };
-
-                                  console.log("updateProspect payload:", payload);
 
                                   if (updatedProspect.prospectFieldsList) {
                                     const idx = updatedProspect.prospectFieldsList.findIndex(

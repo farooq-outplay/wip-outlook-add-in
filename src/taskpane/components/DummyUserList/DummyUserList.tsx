@@ -61,7 +61,6 @@ const DummyUserList: React.FC = () => {
 
         // Wait for dialog_ready → then send user data
         dialog.addEventHandler(Office.EventType.DialogMessageReceived, (arg: any) => {
-          console.log("message ::", arg);
           if (arg.message === "dialog_ready") {
             dialog.messageChild(JSON.stringify(user));
           }

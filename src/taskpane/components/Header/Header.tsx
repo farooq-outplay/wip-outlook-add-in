@@ -32,7 +32,6 @@ const Header: React.FC = () => {
     React.useState<String>("Prospect Details");
 
   const handleMenuSelect = (component: OPAddInComponentType) => {
-    console.log(component);
     setSelectedComponent(component);
     if (component === OPAddInComponentType.ProspectSectionComponent) {
       setSelectedComponentName("Prospect Details");

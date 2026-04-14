@@ -54,7 +54,6 @@ function onMessageSendHandler(event: Office.AddinCommands.Event) {
     imageHtml,
     { coercionType: Office.CoercionType.Html },
     (asyncResult) => {
-      console.log(asyncResult);
       if (asyncResult.status === Office.AsyncResultStatus.Failed) {
         // Failed to inject. Define whether to block sending or allow.
         // User goal: "Reliably injected". If it fails, we should probably block and notify.
