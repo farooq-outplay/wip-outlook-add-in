@@ -37,7 +37,6 @@ const AddToSequenceModal: React.FC<AddToSequenceModalProps> = ({ isOpen, onClose
                                 dialogRef.current = null;
                                 onClose();
                             } else if (message.status === "submitted") {
-                                console.log("Prospect added to sequence:", message.data);
                                 // Here you would typically perform the actual logic or API call
                                 dialogRef.current?.close();
                                 dialogRef.current = null;

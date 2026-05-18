@@ -24,8 +24,8 @@ module.exports = async (env, options) => {
   return {
     mode: dev ? "development" : "production",
 
-    // Best source maps for Outlook + React debugging
-    devtool: dev ? "eval-source-map" : "source-map", //  "eval-source-map"
+    // Source maps: full maps in dev only; hidden in production for error tracking without exposing source
+    devtool: dev ? "eval-source-map" : false,
 
     entry: {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
@@ -129,12 +129,18 @@ module.exports = async (env, options) => {
       new webpack.ProvidePlugin({
         Promise: ["es6-promise", "Promise"],
       }),
+
+      new webpack.DefinePlugin({
+        "process.env.HOST_URL": JSON.stringify(process.env.HOST_URL || ""),
+        "process.env.DEV_HOST_URL": JSON.stringify(process.env.DEV_HOST_URL || ""),
+        "process.env.MOBILE_API_HOST_URL": JSON.stringify(process.env.MOBILE_API_HOST_URL || ""),
+      }),
     ],
 
     devServer: {
       hot: true,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "https://localhost:3000",
       },
       server: {
         type: "https",

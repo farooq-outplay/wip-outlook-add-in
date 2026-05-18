@@ -24,12 +24,10 @@ const TextInsertion: React.FC<TextInsertionProps> = (props: TextInsertionProps) 
 
       const response = await fetch("https://dev-accounts.outplayhq.com/api/user/locations");
       const data = await response.json();
-      console.log("User Data:", data);
     } catch (error) {
-      console.error("API call failed:", error);
       Office.context.mailbox.item.notificationMessages.replaceAsync("errorMsg", {
         type: "errorMessage",
-        message: `API failed: ${error.message}`,
+        message: "API request failed. Please try again.",
       });
     }
   }

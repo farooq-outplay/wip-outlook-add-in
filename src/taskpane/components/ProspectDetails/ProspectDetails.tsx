@@ -55,7 +55,6 @@ const ProspectDetails: React.FC = () => {
   const getProspectInfoByEmail = async (email: string | number) => {
     try {
       const data: ProspectResponse = await getProspectByEmail(email);
-      console.log("Data ::", data);
 
       if (data.success) {
         setShowSomethingWentWrong(false);
